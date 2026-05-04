@@ -113,28 +113,27 @@ function Thread() {
                 'What are the best ESG funds for climate impact?',
                 'How do I start impact investing with $1,000?',
               ].map((prompt) => (
-                <ComposerPrimitive.Input asChild key={prompt}>
-                  <button
-                    type="button"
-                    className="rounded-full border border-border bg-muted/50 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                    onClick={(e) => {
-                      const input = (e.target as HTMLElement)
-                        .closest('[data-radix-scroll-area-viewport]')
-                        ?.parentElement?.querySelector('textarea');
-                      if (input) {
-                        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-                          window.HTMLTextAreaElement.prototype,
-                          'value'
-                        )?.set;
-                        nativeInputValueSetter?.call(input, prompt);
-                        input.dispatchEvent(new Event('input', { bubbles: true }));
-                        input.focus();
-                      }
-                    }}
-                  >
-                    {prompt}
-                  </button>
-                </ComposerPrimitive.Input>
+                <button
+                  type="button"
+                  key={prompt}
+                  className="rounded-full border border-border bg-muted/50 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  onClick={() => {
+                    const textarea = document.querySelector<HTMLTextAreaElement>(
+                      '[data-thread-composer] textarea, [data-aui-root] textarea'
+                    );
+                    if (textarea) {
+                      const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+                        window.HTMLTextAreaElement.prototype,
+                        'value'
+                      )?.set;
+                      nativeInputValueSetter?.call(textarea, prompt);
+                      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                      textarea.focus();
+                    }
+                  }}
+                >
+                  {prompt}
+                </button>
               ))}
             </div>
           </div>

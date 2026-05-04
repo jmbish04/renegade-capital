@@ -9,9 +9,15 @@
  *   finance, and social justice for the Renegade Capital series.
  */
 
+export type ModelId =
+  | '@cf/meta/llama-3.2-3b-instruct'
+  | '@cf/meta/llama-3.3-70b-instruct-fp8-fast'
+  | '@cf/mistral/mistral-7b-instruct-v0.1'
+  | (string & {});
+
 export type AgentConfig = {
   name: string;
-  model: string;
+  model: ModelId;
   systemPrompt: string;
 };
 

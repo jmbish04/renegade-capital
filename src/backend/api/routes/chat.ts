@@ -133,8 +133,9 @@ async function streamAgentResponse(
               if (delta) {
                 writer.write({ type: 'text-delta', id: textId, delta });
               }
-            } catch {
-              // skip malformed chunks
+            } catch (parseErr) {
+              // Log malformed SSE chunks at debug level to aid troubleshooting
+              console.debug('[chat] Skipping malformed SSE chunk:', parseErr);
             }
           }
         }
