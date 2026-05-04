@@ -117,10 +117,10 @@ function Thread() {
                   type="button"
                   key={prompt}
                   className="rounded-full border border-border bg-muted/50 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                  onClick={() => {
-                    const textarea = document.querySelector<HTMLTextAreaElement>(
-                      '[data-thread-composer] textarea, [data-aui-root] textarea'
-                    );
+                  onClick={(e) => {
+                    const textarea = (e.target as HTMLElement)
+                      .closest('[data-assistant-ui], .flex-col')
+                      ?.querySelector<HTMLTextAreaElement>('textarea');
                     if (textarea) {
                       const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
                         window.HTMLTextAreaElement.prototype,
