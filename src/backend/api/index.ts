@@ -9,6 +9,7 @@ import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import type { D1Database, Ai } from '@cloudflare/workers-types';
 import { authRouter } from './routes/auth';
+import { chatRouter } from './routes/chat';
 import { dashboardRouter } from './routes/dashboard';
 import { threadsRouter } from './routes/threads';
 import { healthRouter } from './routes/health';
@@ -42,7 +43,19 @@ app.use('*', logger());
 // Health check
 app.get('/api/ping', (c) => c.json({ status: 'ok', timestamp: Date.now() }));
 
+// Context endpoint — returns platform metadata for AI Gateway context headers
+app.get('/context', (c) =>
+  c.json({
+    platform: 'Renegade Capital',
+    version: '1.0.0',
+    agents: ['SocialJusticeInvestorAgent', 'PodcastGuestAgent'],
+    description:
+      'A multi-agent platform aligning personal wealth with social justice and exploring the ethical frontiers of AI.',
+  })
+);
+
 // Mount routers
+app.route('/api/chat', chatRouter);
 app.route('/api/auth', authRouter);
 app.route('/api/dashboard', dashboardRouter);
 app.route('/api/threads', threadsRouter);

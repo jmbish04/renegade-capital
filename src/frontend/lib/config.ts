@@ -17,19 +17,21 @@ export type SiteConfig = {
 };
 
 export const siteConfig: SiteConfig = {
-  name: "Astro shadcn/ui template",
-  description: "The template helps you build apps with Astro, Tailwind CSS, and shadcn/ui.",
-  url: "https://astro-shadcn-ui-template.vercel.app",
+  name: "Renegade Capital",
+  description:
+    "Align your wealth with your values. AI-powered tools for social justice investing and ethical finance exploration.",
+  url: "https://renegade-capital.workers.dev",
   author: {
-    name: "AREA44",
-    url: "https://github.com/area44",
+    name: "Renegade Capital",
+    url: "https://github.com/jmbish04/social-justice-investing-ai",
   },
   links: {
-    github: "https://github.com/area44/astro-shadcn-ui-template",
+    github: "https://github.com/jmbish04/social-justice-investing-ai",
   },
   navItems: [
-    { href: "https://astro.build", label: "Astro", external: true },
-    { href: "https://tailwindcss.com", label: "Tailwind CSS", external: true },
-    { href: "https://ui.shadcn.com", label: "shadcn/ui", external: true },
+    { href: "/", label: "Home" },
+    { href: "/investor", label: "Investor AI" },
+    { href: "/podcast", label: "Podcast Curator" },
+    { href: "/docs", label: "Docs", external: true },
   ],
 };
