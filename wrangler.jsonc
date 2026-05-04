@@ -1,5 +1,5 @@
 {
-  "name": "core-template-cfw-assets-astro-shadcn",
+  "name": "social-justice-investing-ai",
   "main": "dist/_worker.js/index.js",
   "compatibility_date": "2026-03-09",
   "compatibility_flags": ["nodejs_compat"],
@@ -33,9 +33,8 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "core-template-cfw-assets-astro-shadcn",
-      "database_id": "d126139f-6f57-49d2-bbc4-d20bbd46bbf4",
-      "preview_database_id": "d126139f-6f57-49d2-bbc4-d20bbd46bbf4",
+      "database_name": "social-justice-investing-ai",
+      "database_id": "c360a56e-56fd-4d41-b04d-b32643771e5e",
       "migrations_dir": "drizzle",
     },
   ],
