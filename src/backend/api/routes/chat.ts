@@ -93,7 +93,7 @@ async function streamAgentResponse(
 
       try {
         const aiResult = await env.AI.run(
-          agent.model as '@cf/meta/llama-3.2-3b-instruct',
+          agent.model as any,
           {
             messages: aiMessages as Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
             stream: true,
