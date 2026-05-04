@@ -59,6 +59,7 @@ app.route('/api/chat', chatRouter);
 app.route('/api/auth', authRouter);
 app.route('/api/dashboard', dashboardRouter);
 app.route('/api/threads', threadsRouter);
+app.route('/health', healthRouter);
 app.route('/api/health', healthRouter);
 app.route('/api/notifications', notificationsRouter);
 app.route('/api/ai', aiRouter);
