@@ -11,6 +11,8 @@ import { AssistantRuntimeProvider, ThreadPrimitive, ComposerPrimitive, MessagePr
 import { useChatRuntime } from '@assistant-ui/react-ai-sdk';
 import { DefaultChatTransport } from 'ai';
 import { SendHorizonalIcon, StopCircleIcon, RefreshCwIcon, CopyIcon } from 'lucide-react';
+// 1. Import our newly created utility
+import { parseMarkdownToHtml } from '@/lib/utils/markdown-parser'; 
 
 // ---------------------------------------------------------------------------
 // Runtime
@@ -26,10 +28,28 @@ function useInvestorRuntime() {
 // Sub-components
 // ---------------------------------------------------------------------------
 
+// 2. Create a reusable wrapper component for the markdown parser
+function MarkdownText({ text }: { text: string }) {
+  // Parse the raw markdown into HTML
+  const htmlContent = parseMarkdownToHtml(text);
+  
+  // Render using dangerouslySetInnerHTML. 
+  // NOTE: If you add DOMPurify later, you would wrap `htmlContent` like:
+  // __html: DOMPurify.sanitize(htmlContent)
+  return (
+    <div 
+      className="prose prose-sm dark:prose-invert max-w-none" 
+      dangerouslySetInnerHTML={{ __html: htmlContent }} 
+    />
+  );
+}
+
+
 function UserMessage() {
   return (
     <MessagePrimitive.Root className="flex justify-end gap-3 px-4 py-2">
       <div className="max-w-[80%] rounded-2xl rounded-br-sm bg-primary px-4 py-2.5 text-sm text-primary-foreground">
+         {/* 3. Pass the raw text through a span for the user message (usually no markdown needed here) */}
         <MessagePrimitive.Parts components={{ Text: (props) => <span>{props.text}</span> }} />
       </div>
     </MessagePrimitive.Root>
@@ -44,9 +64,10 @@ function AssistantMessage() {
       </div>
       <div className="flex flex-col gap-1">
         <div className="max-w-[80%] rounded-2xl rounded-bl-sm bg-muted px-4 py-2.5 text-sm text-foreground">
+          {/* 4. Inject our MarkdownText component to handle the Assistant's rich text output */}
           <MessagePrimitive.Parts
             components={{
-              Text: (props) => <span className="whitespace-pre-wrap">{props.text}</span>,
+              Text: (props) => <MarkdownText text={props.text} />,
             }}
           />
         </div>
