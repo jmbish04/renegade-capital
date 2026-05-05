@@ -379,7 +379,7 @@ export const guests = [
     "tone": "The Legal Futurist. Eloquent and urgent, she can paint a vivid, and at times terrifying, picture of a near-future legal and ethical battleground. She excels at making speculative threats feel immediate and tangible, backed by her deep expertise in law and bioethics.",
     "background": "Audience: Legal Professionals, Futurists, Civil Liberties Advocates, Tech Ethicists. | Influence: Public Intellectual.",
     "created_at": 1762017828236,
-    "is_book_contributor": 0
+    "is_book_contributor": 0,
     "headshot_url": null
   },
   {
