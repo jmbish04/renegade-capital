@@ -19,7 +19,7 @@ import { documentsRouter } from './routes/documents';
 import { openapiRouter } from './routes/openapi';
 import { clashRouter } from "./routes/clash";
 
-
+export type Bindings = Env;
 
 export type Variables = {
   userId?: number;
