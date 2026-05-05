@@ -3,14 +3,15 @@
  *
  * Provides streaming chat endpoints with tool support for the AI agents
  * defined in `../../ai/agents.ts`. Uses Vercel AI SDK streamText with
- * Cloudflare Workers AI provider.
+ * the official OpenAI SDK provider routed through Cloudflare AI Gateway.
  */
 
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { streamText } from 'ai';
-import { AGENTS } from '../../ai/agents';
+import { createOpenAI } from '@ai-sdk/openai';
+import { AGENTS, getAIGatewayBaseURL } from '../../ai/agents';
 import type { Bindings } from '../index';
 import { drizzle } from 'drizzle-orm/d1';
 import { guests } from '../../db/schema';
@@ -285,69 +286,6 @@ const pairGuestsTool = {
 };
 
 /**
- * Custom Cloudflare Workers AI language model provider
- */
-function createCloudflareProvider(env: Bindings, modelId: string) {
-  return {
-    doStream: async (options: any) => {
-      const { prompt, system, messages } = options;
-
-      // Build messages array
-      const aiMessages: Array<{ role: string; content: string }> = [];
-
-      if (system) {
-        aiMessages.push({ role: 'system', content: system });
-      }
-
-      if (messages) {
-        aiMessages.push(...messages.map((msg: any) => ({
-          role: msg.role,
-          content: msg.content,
-        })));
-      } else if (prompt) {
-        aiMessages.push({ role: 'user', content: prompt });
-      }
-
-      const result = await env.AI.run(modelId as any, {
-        messages: aiMessages as Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
-        stream: true,
-        max_tokens: 4096,
-      });
-
-      return result as ReadableStream;
-    },
-
-    doGenerate: async (options: any) => {
-      const { prompt, system, messages } = options;
-
-      // Build messages array
-      const aiMessages: Array<{ role: string; content: string }> = [];
-
-      if (system) {
-        aiMessages.push({ role: 'system', content: system });
-      }
-
-      if (messages) {
-        aiMessages.push(...messages.map((msg: any) => ({
-          role: msg.role,
-          content: msg.content,
-        })));
-      } else if (prompt) {
-        aiMessages.push({ role: 'user', content: prompt });
-      }
-
-      const result = await env.AI.run(modelId as any, {
-        messages: aiMessages as Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
-        stream: false,
-        max_tokens: 4096,
-      });
-
-      return result;
-    },
-  };
-}
-
-/**
  * POST /api/chat/investor
  *
  * Streaming endpoint for the SocialJusticeInvestorAgent with tool support.
@@ -359,9 +297,20 @@ chatRouter.post(
     const { messages } = c.req.valid('json');
     const agent = AGENTS.investor;
 
+    // Get AI Gateway configuration from environment
+    const accountId = c.env.CLOUDFLARE_ACCOUNT_ID || '';
+    const gatewayId = c.env.AI_GATEWAY_ID || 'renegade-capital';
+    const openaiApiKey = c.env.OPENAI_API_KEY || '';
+
+    // Create OpenAI client with AI Gateway base URL
+    const openai = createOpenAI({
+      apiKey: openaiApiKey,
+      baseURL: getAIGatewayBaseURL(accountId, gatewayId),
+    });
+
     try {
       const result = streamText({
-        model: createCloudflareProvider(c.env, agent.model) as any,
+        model: openai(agent.model),
         system: agent.systemPrompt,
         messages,
         tools: {
@@ -395,6 +344,17 @@ chatRouter.post(
     const { messages } = c.req.valid('json');
     const agent = AGENTS.podcast;
 
+    // Get AI Gateway configuration from environment
+    const accountId = c.env.CLOUDFLARE_ACCOUNT_ID || '';
+    const gatewayId = c.env.AI_GATEWAY_ID || 'renegade-capital';
+    const openaiApiKey = c.env.OPENAI_API_KEY || '';
+
+    // Create OpenAI client with AI Gateway base URL
+    const openai = createOpenAI({
+      apiKey: openaiApiKey,
+      baseURL: getAIGatewayBaseURL(accountId, gatewayId),
+    });
+
     // Create context-aware tool wrappers
     const contextualGetAllGuests = {
       ...getAllGuestsTool,
@@ -413,7 +373,7 @@ chatRouter.post(
 
     try {
       const result = streamText({
-        model: createCloudflareProvider(c.env, agent.model) as any,
+        model: openai(agent.model),
         system: agent.systemPrompt,
         messages,
         tools: {

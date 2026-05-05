@@ -10,8 +10,10 @@
  */
 
 export type ModelId =
-  | '@cf/openai/gpt-oss-120b'
-  | '@cf/meta/llama-3.3-70b-instruct-fp8-fast'
+  | 'gpt-4o'
+  | 'gpt-4o-mini'
+  | 'gpt-4-turbo'
+  | 'gpt-3.5-turbo'
   | (string & {});
 
 export type AgentConfig = {
@@ -168,12 +170,12 @@ You have access to interactive tools to create engaging podcast content AND a gu
 export const AGENTS: Record<string, AgentConfig> = {
   investor: {
     name: 'SocialJusticeInvestorAgent',
-    model: '@cf/openai/gpt-oss-120b',
+    model: 'gpt-4o',
     systemPrompt: SOCIAL_JUSTICE_INVESTOR_SYSTEM_PROMPT,
   },
   podcast: {
     name: 'PodcastGuestAgent',
-    model: '@cf/openai/gpt-oss-120b',
+    model: 'gpt-4o',
     systemPrompt: PODCAST_GUEST_SYSTEM_PROMPT,
   },
 };
