@@ -1,0 +1,26 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ClashAnimations from "../components/ClashAnimations";
+---
+
+<BaseLayout title="Algorithmic Redlining | Renegade Capital">
+  <main class="min-h-screen bg-[#09090b] text-zinc-50 py-16 px-6 sm:px-12">
+    <div class="max-w-[1400px] mx-auto">
+      
+      <header class="mb-20 text-center space-y-6 max-w-4xl mx-auto">
+        <div class="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-sm font-medium text-emerald-400 mb-4">
+          Strategic Alignment Brief
+        </div>
+        <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight text-white">
+          Algorithmic Redlining
+        </h1>
+        <p class="text-xl md:text-2xl text-zinc-400 font-light leading-relaxed">
+          Exposing the critical battleground where the future of ethical finance meets aggressive algorithmic deregulation.
+        </p>
+      </header>
+      
+      <ClashAnimations client:load />
+      
+    </div>
+  </main>
+</BaseLayout>
