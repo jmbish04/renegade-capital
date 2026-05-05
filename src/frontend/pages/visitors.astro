@@ -1,0 +1,93 @@
+---
+/**
+ * @fileoverview Secret visitors analytics dashboard
+ *
+ * Displays recent visitor data from the visitor_logs table
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// Fetch visitor data from the API
+const response = await fetch(new URL('/api/analytics', Astro.url.origin));
+const data = await response.json();
+const visitors = data.visitors || [];
+---
+
+<BaseLayout title="Visitor Analytics" description="Internal analytics dashboard">
+  <div class="container mx-auto px-4 py-12">
+    <h1 class="text-3xl font-bold text-foreground mb-8">Visitor Analytics</h1>
+
+    <div class="bg-muted/30 border border-border rounded-lg p-6">
+      <div class="mb-4 flex items-center justify-between">
+        <h2 class="text-xl font-semibold text-foreground">Recent Visitors</h2>
+        <span class="text-sm text-muted-foreground">
+          Showing {visitors.length} recent visits
+        </span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full border-collapse">
+          <thead>
+            <tr class="border-b border-border">
+              <th class="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
+                Time
+              </th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
+                Path
+              </th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
+                Location
+              </th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
+                IP Address
+              </th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
+                User Agent
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {visitors.map((visitor: any) => {
+              const date = new Date(visitor.createdAt * 1000);
+              const location = [visitor.city, visitor.country]
+                .filter(Boolean)
+                .join(', ') || 'Unknown';
+
+              return (
+                <tr class="border-b border-border/50 hover:bg-muted/50 transition-colors">
+                  <td class="px-4 py-3 text-sm text-muted-foreground whitespace-nowrap">
+                    {date.toLocaleString()}
+                  </td>
+                  <td class="px-4 py-3 text-sm text-foreground">
+                    {visitor.path}
+                  </td>
+                  <td class="px-4 py-3 text-sm text-muted-foreground">
+                    {location}
+                  </td>
+                  <td class="px-4 py-3 text-sm text-muted-foreground font-mono text-xs">
+                    {visitor.ipAddress}
+                  </td>
+                  <td class="px-4 py-3 text-sm text-muted-foreground max-w-md truncate">
+                    {visitor.userAgent || 'Unknown'}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+
+        {visitors.length === 0 && (
+          <div class="text-center py-12 text-muted-foreground">
+            No visitor data available yet
+          </div>
+        )}
+      </div>
+    </div>
+
+    <div class="mt-4 text-sm text-muted-foreground">
+      <p>
+        This is a secret analytics page. Data is collected anonymously and used
+        only for understanding site usage patterns.
+      </p>
+    </div>
+  </div>
+</BaseLayout>

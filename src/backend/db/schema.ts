@@ -134,3 +134,18 @@ export const documents = sqliteTable("documents", {
     .notNull()
     .default(sql`(unixepoch())`),
 });
+
+/**
+ * Visitor logs table for analytics
+ */
+export const visitorLogs = sqliteTable("visitor_logs", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  ipAddress: text("ip_address"),
+  country: text("country"),
+  city: text("city"),
+  userAgent: text("user_agent"),
+  path: text("path").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
