@@ -20,13 +20,13 @@ export const siteConfig: SiteConfig = {
   name: "Renegade Capital",
   description:
     "Align your wealth with your values. AI-powered tools for social justice investing and ethical finance exploration.",
-  url: "https://renegade-capital.workers.dev",
+  url: "https://renegade-capital.hacolby.workers.dev",
   author: {
     name: "Renegade Capital",
-    url: "https://github.com/jmbish04/social-justice-investing-ai",
+    url: "https://github.com/jmbish04/renegade-capital",
   },
   links: {
-    github: "https://github.com/jmbish04/social-justice-investing-ai",
+    github: "https://github.com/jmbish04/renegade-capital",
   },
   navItems: [
     { href: "/", label: "Home" },
