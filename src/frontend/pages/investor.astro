@@ -37,7 +37,7 @@ import { InvestorChatIsland } from "@/components/InvestorChatIsland";
 
     <!-- Chat island (full height) -->
     <div class="mx-auto flex w-full max-w-3xl flex-1 flex-col" style="height: calc(100svh - var(--header-height) - 5rem);">
-      <InvestorChatIsland client:load />
+      <InvestorChatIsland client:only="react" />
     </div>
   </div>
 </BaseLayout>
