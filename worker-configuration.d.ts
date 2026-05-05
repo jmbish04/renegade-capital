@@ -9,7 +9,7 @@ declare namespace Cloudflare {
     DB: D1Database;
     GITHUB_TOKEN: SecretsStoreSecret;
     CLOUDFLARE_ACCOUNT_ID: SecretsStoreSecret;
-    CLOUDFLARE_API_TOKEN: SecretsStoreSecret;
+    CLOUDFLARE_WRANGLER_API_TOKEN: SecretsStoreSecret;
     CLOUDFLARE_SECRETS_STORE_TOKEN: SecretsStoreSecret;
     CLOUDFLARE_WORKER_ADMIN_TOKEN: SecretsStoreSecret;
     CLOUDFLARE_AI_SEARCH_TOKEN: SecretsStoreSecret;
