@@ -72,4 +72,4 @@ clashRouter.get("/", (c) => {
   return c.json(clashData);
 });
 
-export default app;
+export default clashRouter;
