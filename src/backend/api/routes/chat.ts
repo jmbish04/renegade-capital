@@ -86,6 +86,22 @@ const renderPodcastMediaTool = {
   },
 };
 
+const renderDataTableTool = {
+  description: 'Render an interactive data table for displaying tabular information like fund comparisons, stock metrics, or financial data. Use this instead of markdown tables.',
+  parameters: z.object({
+    title: z.string().optional(),
+    columns: z.array(z.object({
+      key: z.string(),
+      label: z.string(),
+      priority: z.enum(['high', 'medium', 'low']).optional(),
+    })),
+    data: z.array(z.record(z.union([z.string(), z.number(), z.boolean()]))),
+  }),
+  execute: async ({ title, columns, data }: any) => {
+    return { title, columns, data };
+  },
+};
+
 /**
  * Custom Cloudflare Workers AI language model provider
  */
@@ -169,6 +185,7 @@ chatRouter.post(
         tools: {
           questionFlow: questionFlowTool,
           renderChart: renderChartTool,
+          renderDataTable: renderDataTableTool,
         },
         maxSteps: 5,
       });

@@ -13,7 +13,6 @@ import { Input } from '../ui/input';
 import { SendHorizonalIcon } from 'lucide-react';
 import { QuestionFlow } from '../tool-ui/question-flow';
 import { Audio } from '../tool-ui/audio';
-import { parseMarkdownToHtml } from '../lib/utils/markdown-parser';
 
 // ---------------------------------------------------------------------------
 // Tool rendering components
@@ -131,8 +130,8 @@ export function PodcastCuratorChatIsland() {
                   {message.content && (
                     <div className="max-w-[80%] rounded-2xl rounded-bl-sm bg-muted px-4 py-2.5 text-sm text-foreground">
                       <div
-                        className="prose prose-sm dark:prose-invert max-w-none"
-                        dangerouslySetInnerHTML={{ __html: parseMarkdownToHtml(message.content) }}
+                        className="prose prose-invert space-y-4 leading-relaxed [&>p]:mb-4 [&>ul]:list-disc [&>ul]:pl-5 [&>li]:mb-1 [&>h1]:mb-4 [&>h2]:mb-3 [&>h3]:mb-2"
+                        dangerouslySetInnerHTML={{ __html: message.content }}
                       />
                     </div>
                   )}
