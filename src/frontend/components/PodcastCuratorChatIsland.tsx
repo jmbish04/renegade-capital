@@ -148,7 +148,6 @@ function Thread() {
             AssistantMessage,
           }}
         />
-        <ThreadPrimitive.ViewportSlack>{null}</ThreadPrimitive.ViewportSlack>
       </ThreadPrimitive.Viewport>
 
       {/* Composer */}
