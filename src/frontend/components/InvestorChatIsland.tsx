@@ -8,12 +8,12 @@
 
 import * as React from 'react';
 import { useChat } from '@ai-sdk/react';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { SendHorizonalIcon } from 'lucide-react';
-import { QuestionFlow } from '../tool-ui/question-flow';
-import { Chart } from '../tool-ui/chart';
-import { DataTable } from '../tool-ui/data-table';
+import { QuestionFlow } from './tool-ui/question-flow';
+import { Chart } from './tool-ui/chart';
+import { DataTable } from './tool-ui/data-table';
 
 // ---------------------------------------------------------------------------
 // Tool rendering components

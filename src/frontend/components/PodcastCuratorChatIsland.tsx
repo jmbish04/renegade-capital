@@ -8,11 +8,11 @@
 
 import * as React from 'react';
 import { useChat } from '@ai-sdk/react';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { SendHorizonalIcon } from 'lucide-react';
-import { QuestionFlow } from '../tool-ui/question-flow';
-import { Audio } from '../tool-ui/audio';
+import { QuestionFlow } from './tool-ui/question-flow';
+import { Audio } from './tool-ui/audio';
 
 // ---------------------------------------------------------------------------
 // Tool rendering components
