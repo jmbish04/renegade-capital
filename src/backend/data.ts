@@ -181,7 +181,6 @@ export const research = [
     "created_at": 1762017408594,
     "affiliation": "Princeton University",
     "headshot_url": "Hosted within press kit via https://www.ruhabenjamin.com/media"
-    "headshot_url": null    
   },
   {
     "id": "94e5d92a-8e50-4e58-9f51-9c6b318dee86",
@@ -238,7 +237,6 @@ export const research = [
     "date_added": 1760572800,
     "created_at": 1762017587675,
     "affiliation": "Princeton University",
-    "headshot_url": "Hosted within press kit via https://www.ruhabenjamin.com/media"
     "headshot_url": "https://sites.uci.edu/forum/2020/01/03/ruha-benjamin-race-after-technology-feb-7-2020/"
   },
   {
@@ -607,7 +605,8 @@ export const guests = [
     "tone": "The People's Researcher. A passionate, data-driven advocate who can speak with authority and humility about how to conduct research with communities, not on them, and why this approach leads to more effective and just outcomes.",
     "background": "Audience: Public Health Professionals, Labor Advocates, Sociologists, Government Researchers. | Influence: Niche Expert.",
     "created_at": 1762017834399,
-    "is_book_contributor": 0
+    "is_book_contributor": 0,
+    "headshot_url": null    
   },
   {
     "id": "13e9a082-a3e6-4d4a-b533-405a3b46a0a4",
