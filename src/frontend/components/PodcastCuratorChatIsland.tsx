@@ -1,117 +1,72 @@
 /**
  * @fileoverview Podcast Curator Chat Island
  *
- * A React island powered by @assistant-ui/react that connects to the
- * /api/chat/podcast endpoint (PodcastGuestAgent). Uses the
- * Shadcn Default Dark Theme.
+ * A React island powered by @ai-sdk/react that connects to the
+ * /api/chat/podcast endpoint (PodcastGuestAgent). Supports tool rendering
+ * for QuestionFlow and Audio components.
  */
 
 import * as React from 'react';
-import { AssistantRuntimeProvider, ThreadPrimitive, ComposerPrimitive, MessagePrimitive, ActionBarPrimitive, useAui } from '@assistant-ui/react';
-import { useChatRuntime } from '@assistant-ui/react-ai-sdk';
-import { DefaultChatTransport } from 'ai';
-import { SendHorizonalIcon, StopCircleIcon, RefreshCwIcon, CopyIcon } from 'lucide-react';
+import { useChat } from '@ai-sdk/react';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { SendHorizonalIcon } from 'lucide-react';
+import { QuestionFlow } from '../tool-ui/question-flow';
+import { Audio } from '../tool-ui/audio';
 import { parseMarkdownToHtml } from '../lib/utils/markdown-parser';
 
 // ---------------------------------------------------------------------------
-// Runtime
+// Tool rendering components
 // ---------------------------------------------------------------------------
 
-function usePodcastRuntime() {
-  return useChatRuntime({
-    transport: new DefaultChatTransport({ api: '/api/chat/podcast' }),
+function ToolInvocation({ toolName, args, result }: any) {
+  if (toolName === 'questionFlow' && args) {
+    return <QuestionFlow steps={args.steps} onComplete={(answers) => {
+      // Submit answers back to chat
+      console.log('QuestionFlow completed:', answers);
+    }} />;
+  }
+
+  if (toolName === 'renderPodcastMedia' && result) {
+    return (
+      <Audio
+        title={result.title}
+        description={result.description}
+        src={result.src}
+        artwork={result.artwork}
+      />
+    );
+  }
+
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// Main component
+// ---------------------------------------------------------------------------
+
+export function PodcastCuratorChatIsland() {
+  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+    api: '/api/chat/podcast',
+    initialMessages: [],
   });
-}
 
-// ---------------------------------------------------------------------------
-// Sub-components
-// ---------------------------------------------------------------------------
+  const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
-function MarkdownText({ text }: { text: string }) {
-  const htmlContent = parseMarkdownToHtml(text);
+  React.useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const handleSuggestion = (text: string) => {
+    handleInputChange({ target: { value: text } } as any);
+  };
+
   return (
-    <div
-      className="prose prose-sm dark:prose-invert max-w-none"
-      dangerouslySetInnerHTML={{ __html: htmlContent }}
-    />
-  );
-}
-
-function UserMessage() {
-  return (
-    <MessagePrimitive.Root className="flex justify-end gap-3 px-4 py-2">
-      <div className="max-w-[80%] rounded-2xl rounded-br-sm bg-primary px-4 py-2.5 text-sm text-primary-foreground">
-        <MessagePrimitive.Parts components={{ Text: (props) => <span>{props.text}</span> }} />
-      </div>
-    </MessagePrimitive.Root>
-  );
-}
-
-function AssistantMessage() {
-  return (
-    <MessagePrimitive.Root className="flex gap-3 px-4 py-2">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-        RC
-      </div>
-      <div className="flex flex-col gap-1">
-        <div className="max-w-[80%] rounded-2xl rounded-bl-sm bg-muted px-4 py-2.5 text-sm text-foreground">
-          <MessagePrimitive.Parts
-            components={{
-              Text: (props) => <MarkdownText text={props.text} />,
-            }}
-          />
-        </div>
-        <ActionBarPrimitive.Root
-          hideWhenRunning
-          autohide="not-last"
-          className="flex items-center gap-1 px-1"
-        >
-          <ActionBarPrimitive.Copy asChild>
-            <button
-              type="button"
-              className="rounded p-1 text-muted-foreground opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100"
-              aria-label="Copy message"
-            >
-              <CopyIcon className="size-3.5" />
-            </button>
-          </ActionBarPrimitive.Copy>
-          <ActionBarPrimitive.Reload asChild>
-            <button
-              type="button"
-              className="rounded p-1 text-muted-foreground opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100"
-              aria-label="Regenerate response"
-            >
-              <RefreshCwIcon className="size-3.5" />
-            </button>
-          </ActionBarPrimitive.Reload>
-        </ActionBarPrimitive.Root>
-      </div>
-    </MessagePrimitive.Root>
-  );
-}
-
-function SuggestionButton({ prompt }: { prompt: string }) {
-  const aui = useAui();
-  return (
-    <button
-      type="button"
-      className="rounded-full border border-border bg-muted/50 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-      onClick={() => {
-        aui.composer().setText(prompt);
-      }}
-    >
-      {prompt}
-    </button>
-  );
-}
-
-function Thread() {
-  return (
-    <ThreadPrimitive.Root className="flex h-full flex-col bg-background">
+    <div className="flex h-full flex-col bg-background">
       {/* Message viewport */}
-      <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto">
         {/* Empty state */}
-        <ThreadPrimitive.Empty>
+        {messages.length === 0 && (
           <div className="flex h-full flex-col items-center justify-center gap-4 px-6 py-12 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
               <svg
@@ -137,70 +92,92 @@ function Thread() {
             </div>
             <div className="flex flex-wrap justify-center gap-2">
               {[
+                'Help me brainstorm podcast ideas',
                 'Suggest guests on algorithmic bias in lending',
                 'Design a 3-episode arc on AI and the racial wealth gap',
-                'Who should I pair with Ruha Benjamin?',
               ].map((prompt) => (
-                <SuggestionButton key={prompt} prompt={prompt} />
+                <button
+                  key={prompt}
+                  type="button"
+                  className="rounded-full border border-border bg-muted/50 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  onClick={() => handleSuggestion(prompt)}
+                >
+                  {prompt}
+                </button>
               ))}
             </div>
           </div>
-        </ThreadPrimitive.Empty>
+        )}
 
         {/* Messages */}
-        <ThreadPrimitive.Messages
-          components={{
-            UserMessage,
-            AssistantMessage,
-          }}
-        />
-      </ThreadPrimitive.Viewport>
+        <div className="space-y-4 p-4">
+          {messages.map((message) => {
+            if (message.role === 'user') {
+              return (
+                <div key={message.id} className="flex justify-end gap-3">
+                  <div className="max-w-[80%] rounded-2xl rounded-br-sm bg-primary px-4 py-2.5 text-sm text-primary-foreground">
+                    {message.content}
+                  </div>
+                </div>
+              );
+            }
+
+            return (
+              <div key={message.id} className="flex gap-3">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                  RC
+                </div>
+                <div className="flex flex-col gap-2 flex-1">
+                  {message.content && (
+                    <div className="max-w-[80%] rounded-2xl rounded-bl-sm bg-muted px-4 py-2.5 text-sm text-foreground">
+                      <div
+                        className="prose prose-sm dark:prose-invert max-w-none"
+                        dangerouslySetInnerHTML={{ __html: parseMarkdownToHtml(message.content) }}
+                      />
+                    </div>
+                  )}
+
+                  {/* Tool invocations */}
+                  {message.toolInvocations?.map((tool: any) => (
+                    <div key={tool.toolCallId}>
+                      <ToolInvocation
+                        toolName={tool.toolName}
+                        args={tool.args}
+                        result={tool.result}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+          <div ref={messagesEndRef} />
+        </div>
+      </div>
 
       {/* Composer */}
       <div className="border-t border-border bg-background p-4">
-        <ComposerPrimitive.Root className="flex items-end gap-2 rounded-xl border border-border bg-muted/30 px-4 py-2">
-          <ComposerPrimitive.Input
-            className="flex-1 resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+        <form onSubmit={handleSubmit} className="flex items-end gap-2 rounded-xl border border-border bg-muted/30 px-4 py-2">
+          <Input
+            value={input}
+            onChange={handleInputChange}
             placeholder="Ask about podcast guests, episode arcs, or thematic pairings…"
-            rows={1}
-            autoFocus
+            className="flex-1 resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+            disabled={isLoading}
           />
-          <ComposerPrimitive.Cancel asChild>
-            <button
-              type="button"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-destructive/10 text-destructive transition-colors hover:bg-destructive/20"
-              aria-label="Stop"
-            >
-              <StopCircleIcon className="size-4" />
-            </button>
-          </ComposerPrimitive.Cancel>
-          <ComposerPrimitive.Send asChild>
-            <button
-              type="button"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-40"
-              aria-label="Send"
-            >
-              <SendHorizonalIcon className="size-4" />
-            </button>
-          </ComposerPrimitive.Send>
-        </ComposerPrimitive.Root>
+          <Button
+            type="submit"
+            size="icon"
+            className="h-8 w-8 shrink-0"
+            disabled={isLoading || !input.trim()}
+          >
+            <SendHorizonalIcon className="size-4" />
+          </Button>
+        </form>
         <p className="mt-2 text-center text-xs text-muted-foreground">
           Powered by the Renegade Capital Prospectus
         </p>
       </div>
-    </ThreadPrimitive.Root>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Island entry point
-// ---------------------------------------------------------------------------
-
-export function PodcastCuratorChatIsland() {
-  const runtime = usePodcastRuntime();
-  return (
-    <AssistantRuntimeProvider runtime={runtime}>
-      <Thread />
-    </AssistantRuntimeProvider>
+    </div>
   );
 }

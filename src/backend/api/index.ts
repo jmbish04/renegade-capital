@@ -18,6 +18,7 @@ import { aiRouter } from './routes/ai';
 import { documentsRouter } from './routes/documents';
 import { openapiRouter } from './routes/openapi';
 import { clashRouter } from "./routes/clash";
+import { mediaRouter } from './routes/media';
 
 export type Bindings = Env;
 
@@ -61,6 +62,7 @@ app.route('/api/notifications', notificationsRouter);
 app.route('/api/ai', aiRouter);
 app.route('/api/clash', clashRouter);
 app.route('/api/documents', documentsRouter);
+app.route('/api/media', mediaRouter);
 app.route('/', openapiRouter);
 
 export { app };
