@@ -30,11 +30,10 @@ export const siteConfig: SiteConfig = {
   },
   navItems: [
     { href: "/", label: "Home" },
-    { href: "/investor", label: "🤖 Investor Agent" },
-    { href: "/podcast", label: "🤖 Podcast Agent" },
+    { href: "/investor", label: "🤖 🏦 Investor Agent" },
+    { href: "/podcast", label: "🤖 🔊 Podcast Agent" },
     { href: "/heros", label: "Fellow Social Justice Heroes" },
-    { href: "/clash", label: "❌ 2026 Redlining" },
-    { href: "/docs", label: "Docs", external: true },
-    
+    { href: "/clash", label: "❌ ✍️ 2026 Redlining" },
+    { href: "/docs", label: "🤓 Docs", external: true },
   ],
 };
