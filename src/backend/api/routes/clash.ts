@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 
-const app = new Hono();
+const clashRouter = new Hono();
 
 export const clashData = {
   pdfUrl: "https://drive.google.com/file/d/1tItjO_kVpZY-WtUWUN9w0xsF0q4qCWvW/preview",
@@ -68,7 +68,7 @@ export const clashData = {
   ]
 };
 
-app.get("/", (c) => {
+clashRouter.get("/", (c) => {
   return c.json(clashData);
 });
 
