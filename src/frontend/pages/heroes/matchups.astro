@@ -2,11 +2,24 @@
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { GuestCard } from "@/components/GuestCard";
 import { siteConfig } from "@/lib/config";
+import { guests as fallbackGuests } from "@/backend/data";
 
-// Fetch all guests
-const response = await fetch(new URL('/api/guests', Astro.url.origin));
-const data = await response.json();
-const guests = data.guests || [];
+// Fetch all guests from API, fallback to static data during build
+let guests = [];
+try {
+  const response = await fetch(new URL('/api/guests', Astro.url.origin));
+  const data = await response.json();
+  guests = data.guests || [];
+} catch (error) {
+  // During static build, API server isn't running - use fallback data
+  console.log('Using fallback guest data for static build');
+  guests = fallbackGuests.map((g: any) => ({
+    ...g,
+    expertise: typeof g.expertise === 'string' ? JSON.parse(g.expertise) : g.expertise,
+    chemistry: typeof g.tone === 'string' ? [g.tone] : (g.chemistry || []),
+    domain: typeof g.background === 'string' ? [g.background] : (g.domain || []),
+  }));
+}
 
 // Generate compelling pairings based on complementary chemistry and domains
 // We'll create 3-4 suggested matchups for episode pairings
