@@ -1,7 +1,7 @@
 {
-  "name": "social-justice-investing-ai",
+  "name": "renegade-capital",
   "main": "src/_worker.ts",
-  "compatibility_date": "2026-03-09",
+  "compatibility_date": "2026-05-04",
   "compatibility_flags": ["nodejs_compat"],
   "upload_source_maps": true,
   "workers_dev": true,
@@ -16,7 +16,7 @@
       "invocation_logs": true,
     },
     "traces": {
-      "enabled": false,
+      "enabled": true,
       "persist": true,
       "head_sampling_rate": 1,
     },
@@ -33,7 +33,7 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "social-justice-investing-ai",
+      "database_name": "renegade-capital",
       "database_id": "c360a56e-56fd-4d41-b04d-b32643771e5e",
       "migrations_dir": "drizzle",
     },
