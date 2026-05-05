@@ -1,5 +1,5 @@
 {
-  "name": "renegade-capital",
+  "name": "social-justice-investing-ai",
   "main": "src/_worker.ts",
   "compatibility_date": "2026-05-04",
   "compatibility_flags": ["nodejs_compat"],
