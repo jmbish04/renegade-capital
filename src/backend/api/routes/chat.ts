@@ -97,6 +97,7 @@ async function streamAgentResponse(
           {
             messages: aiMessages as Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
             stream: true,
+            max_tokens: 4096,
           }
         );
 

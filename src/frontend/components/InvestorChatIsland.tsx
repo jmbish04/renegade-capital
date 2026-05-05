@@ -12,7 +12,7 @@ import { useChatRuntime } from '@assistant-ui/react-ai-sdk';
 import { DefaultChatTransport } from 'ai';
 import { SendHorizonalIcon, StopCircleIcon, RefreshCwIcon, CopyIcon } from 'lucide-react';
 // 1. Import our newly created utility
-import { parseMarkdownToHtml } from '@/lib/utils/markdown-parser'; 
+import { parseMarkdownToHtml } from '../lib/utils/markdown-parser'; 
 
 // ---------------------------------------------------------------------------
 // Runtime

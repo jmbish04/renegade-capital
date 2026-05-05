@@ -11,6 +11,7 @@ import { AssistantRuntimeProvider, ThreadPrimitive, ComposerPrimitive, MessagePr
 import { useChatRuntime } from '@assistant-ui/react-ai-sdk';
 import { DefaultChatTransport } from 'ai';
 import { SendHorizonalIcon, StopCircleIcon, RefreshCwIcon, CopyIcon } from 'lucide-react';
+import { parseMarkdownToHtml } from '../lib/utils/markdown-parser';
 
 // ---------------------------------------------------------------------------
 // Runtime
@@ -25,6 +26,16 @@ function usePodcastRuntime() {
 // ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
+
+function MarkdownText({ text }: { text: string }) {
+  const htmlContent = parseMarkdownToHtml(text);
+  return (
+    <div
+      className="prose prose-sm dark:prose-invert max-w-none"
+      dangerouslySetInnerHTML={{ __html: htmlContent }}
+    />
+  );
+}
 
 function UserMessage() {
   return (
@@ -46,7 +57,7 @@ function AssistantMessage() {
         <div className="max-w-[80%] rounded-2xl rounded-bl-sm bg-muted px-4 py-2.5 text-sm text-foreground">
           <MessagePrimitive.Parts
             components={{
-              Text: (props) => <span className="whitespace-pre-wrap">{props.text}</span>,
+              Text: (props) => <MarkdownText text={props.text} />,
             }}
           />
         </div>

@@ -40,6 +40,7 @@ aiRouter.post('/chat', zValidator('json', chatSchema), async (c) => {
     const response = await c.env.AI.run(model, {
       messages,
       stream: false,
+      max_tokens: 4096,
     });
 
     return c.json(response);
@@ -57,6 +58,7 @@ aiRouter.post('/chat/stream', zValidator('json', chatSchema), async (c) => {
     const stream = await c.env.AI.run(model, {
       messages,
       stream: true,
+      max_tokens: 4096,
     });
 
     return new Response(stream, {
