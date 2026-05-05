@@ -149,3 +149,22 @@ export const visitorLogs = sqliteTable("visitor_logs", {
     .notNull()
     .default(sql`(unixepoch())`),
 });
+
+/**
+ * Podcast guests table for the Renegade Capital platform
+ */
+export const guests = sqliteTable("guests", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  personaDescription: text("persona_description").notNull(),
+  expertise: text("expertise").notNull(), // JSON array string
+  tone: text("tone").notNull(),
+  background: text("background").notNull(),
+  chemistry: text("chemistry").notNull(), // JSON array string
+  domain: text("domain").notNull(), // JSON array string
+  headshotUrl: text("headshot_url"),
+  affiliation: text("affiliation"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});

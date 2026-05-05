@@ -20,6 +20,7 @@ import { openapiRouter } from './routes/openapi';
 import { clashRouter } from "./routes/clash";
 import { mediaRouter } from './routes/media';
 import { analyticsRouter } from './routes/analytics';
+import { guestsRouter } from './routes/guests';
 import { visitorLogs } from '../db/schema';
 import { drizzle } from 'drizzle-orm/d1';
 
@@ -97,6 +98,7 @@ app.route('/api/clash', clashRouter);
 app.route('/api/documents', documentsRouter);
 app.route('/api/media', mediaRouter);
 app.route('/api/analytics', analyticsRouter);
+app.route('/api/guests', guestsRouter);
 app.route('/', openapiRouter);
 
 export { app };

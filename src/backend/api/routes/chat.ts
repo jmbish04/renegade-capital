@@ -12,6 +12,8 @@ import { z } from 'zod';
 import { streamText } from 'ai';
 import { AGENTS } from '../../ai/agents';
 import type { Bindings } from '../index';
+import { drizzle } from 'drizzle-orm/d1';
+import { guests } from '../../db/schema';
 
 const chatRouter = new Hono<{ Bindings: Bindings }>();
 
@@ -99,6 +101,186 @@ const renderDataTableTool = {
   }),
   execute: async ({ title, columns, data }: any) => {
     return { title, columns, data };
+  },
+};
+
+/**
+ * Guest tools for the Podcast Curator Agent
+ */
+const getAllGuestsTool = {
+  description: 'Retrieve the complete roster of podcast guests from the database',
+  parameters: z.object({}),
+  execute: async (_params: any, context: any) => {
+    try {
+      const db = drizzle(context.env.DB);
+      const allGuests = await db.select().from(guests);
+
+      // Parse JSON fields
+      const parsedGuests = allGuests.map((guest) => ({
+        id: guest.id,
+        name: guest.name,
+        personaDescription: guest.personaDescription,
+        expertise: JSON.parse(guest.expertise),
+        tone: guest.tone,
+        background: guest.background,
+        chemistry: JSON.parse(guest.chemistry),
+        domain: JSON.parse(guest.domain),
+        affiliation: guest.affiliation,
+      }));
+
+      return { guests: parsedGuests, total: parsedGuests.length };
+    } catch (error) {
+      console.error('Error fetching guests:', error);
+      return { error: 'Failed to fetch guests', guests: [] };
+    }
+  },
+};
+
+const findGuestByAttributeTool = {
+  description: 'Search for guests by specific attributes like domain, chemistry, expertise, or name',
+  parameters: z.object({
+    name: z.string().optional(),
+    domain: z.string().optional(),
+    chemistry: z.string().optional(),
+    expertise: z.string().optional(),
+  }),
+  execute: async (params: any, context: any) => {
+    try {
+      const db = drizzle(context.env.DB);
+      let results = await db.select().from(guests);
+
+      // Filter by name if provided
+      if (params.name) {
+        results = results.filter((guest) =>
+          guest.name.toLowerCase().includes(params.name.toLowerCase())
+        );
+      }
+
+      // Parse JSON fields and filter
+      const parsedResults = results.map((guest) => ({
+        id: guest.id,
+        name: guest.name,
+        personaDescription: guest.personaDescription,
+        expertise: JSON.parse(guest.expertise),
+        tone: guest.tone,
+        background: guest.background,
+        chemistry: JSON.parse(guest.chemistry),
+        domain: JSON.parse(guest.domain),
+        affiliation: guest.affiliation,
+      }));
+
+      // Filter by domain if provided
+      let filteredResults = parsedResults;
+      if (params.domain) {
+        filteredResults = filteredResults.filter((guest) =>
+          guest.domain.some((d: string) =>
+            d.toLowerCase().includes(params.domain.toLowerCase())
+          )
+        );
+      }
+
+      // Filter by chemistry if provided
+      if (params.chemistry) {
+        filteredResults = filteredResults.filter((guest) =>
+          guest.chemistry.some((c: string) =>
+            c.toLowerCase().includes(params.chemistry.toLowerCase())
+          )
+        );
+      }
+
+      // Filter by expertise if provided
+      if (params.expertise) {
+        filteredResults = filteredResults.filter((guest) =>
+          guest.expertise.some((e: string) =>
+            e.toLowerCase().includes(params.expertise.toLowerCase())
+          )
+        );
+      }
+
+      return { guests: filteredResults, total: filteredResults.length };
+    } catch (error) {
+      console.error('Error searching guests:', error);
+      return { error: 'Failed to search guests', guests: [] };
+    }
+  },
+};
+
+const pairGuestsTool = {
+  description: 'Find guests with complementary expertise or chemistry for episode pairings. Analyzes the chemistry and domain overlap to suggest compelling conversations.',
+  parameters: z.object({
+    guestName: z.string(),
+    maxResults: z.number().optional(),
+  }),
+  execute: async (params: any, context: any) => {
+    try {
+      const db = drizzle(context.env.DB);
+      const allGuests = await db.select().from(guests);
+
+      // Parse JSON fields
+      const parsedGuests = allGuests.map((guest) => ({
+        id: guest.id,
+        name: guest.name,
+        personaDescription: guest.personaDescription,
+        expertise: JSON.parse(guest.expertise),
+        tone: guest.tone,
+        background: guest.background,
+        chemistry: JSON.parse(guest.chemistry),
+        domain: JSON.parse(guest.domain),
+        affiliation: guest.affiliation,
+      }));
+
+      // Find the target guest
+      const targetGuest = parsedGuests.find(
+        (g) => g.name.toLowerCase() === params.guestName.toLowerCase()
+      );
+
+      if (!targetGuest) {
+        return { error: 'Guest not found', pairings: [] };
+      }
+
+      // Calculate compatibility scores
+      const scored = parsedGuests
+        .filter((g) => g.id !== targetGuest.id)
+        .map((guest) => {
+          let score = 0;
+
+          // Chemistry overlap (shared archetypes)
+          const chemistryOverlap = guest.chemistry.filter((c: string) =>
+            targetGuest.chemistry.includes(c)
+          ).length;
+          score += chemistryOverlap * 2;
+
+          // Domain overlap (shared domains)
+          const domainOverlap = guest.domain.filter((d: string) =>
+            targetGuest.domain.includes(d)
+          ).length;
+          score += domainOverlap * 3;
+
+          // Complementary domains (different but related)
+          const hasComplementaryDomain = guest.domain.some((d: string) =>
+            !targetGuest.domain.includes(d) &&
+            (targetGuest.domain.includes('AI Ethics') || targetGuest.domain.includes('Finance'))
+          );
+          if (hasComplementaryDomain) score += 1;
+
+          return { guest, score };
+        })
+        .filter((item) => item.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, params.maxResults || 5);
+
+      return {
+        targetGuest,
+        pairings: scored.map((item) => ({
+          guest: item.guest,
+          compatibilityScore: item.score,
+          reason: `Shares ${item.guest.chemistry.filter((c: string) => targetGuest.chemistry.includes(c)).join(', ')} chemistry and ${item.guest.domain.filter((d: string) => targetGuest.domain.includes(d)).join(', ')} domains`,
+        })),
+      };
+    } catch (error) {
+      console.error('Error pairing guests:', error);
+      return { error: 'Failed to pair guests', pairings: [] };
+    }
   },
 };
 
@@ -213,6 +395,22 @@ chatRouter.post(
     const { messages } = c.req.valid('json');
     const agent = AGENTS.podcast;
 
+    // Create context-aware tool wrappers
+    const contextualGetAllGuests = {
+      ...getAllGuestsTool,
+      execute: async (params: any) => getAllGuestsTool.execute(params, { env: c.env }),
+    };
+
+    const contextualFindGuestByAttribute = {
+      ...findGuestByAttributeTool,
+      execute: async (params: any) => findGuestByAttributeTool.execute(params, { env: c.env }),
+    };
+
+    const contextualPairGuests = {
+      ...pairGuestsTool,
+      execute: async (params: any) => pairGuestsTool.execute(params, { env: c.env }),
+    };
+
     try {
       const result = streamText({
         model: createCloudflareProvider(c.env, agent.model) as any,
@@ -221,6 +419,9 @@ chatRouter.post(
         tools: {
           questionFlow: questionFlowTool,
           renderPodcastMedia: renderPodcastMediaTool,
+          getAllGuests: contextualGetAllGuests,
+          findGuestByAttribute: contextualFindGuestByAttribute,
+          pairGuests: contextualPairGuests,
         },
         maxSteps: 5,
       });
