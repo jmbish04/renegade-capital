@@ -7,6 +7,9 @@ import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { authMiddleware } from '../middleware/auth';
 import type { Bindings, Variables } from '../index';
+import { drizzle } from 'drizzle-orm/d1';
+import { guests } from '../../db/schema';
+import { eq } from 'drizzle-orm';
 
 const aiRouter = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
@@ -146,6 +149,102 @@ aiRouter.post('/embeddings', zValidator('json', z.object({ text: z.string().min(
   } catch (error) {
     console.error('Embeddings error:', error);
     return c.json({ error: 'Embeddings generation failed' }, 500);
+  }
+});
+
+// GET /api/ai/insights/:id
+// Fetches a guest by ID and generates a 1-paragraph pitch via OpenAI through AI Gateway
+aiRouter.get('/insights/:id', async (c) => {
+  const id = parseInt(c.req.param('id'));
+
+  if (isNaN(id)) {
+    return c.json({ error: 'Invalid guest ID' }, 400);
+  }
+
+  try {
+    // Fetch guest from database
+    const db = drizzle(c.env.DB);
+    const result = await db.select().from(guests).where(eq(guests.id, id));
+
+    if (result.length === 0) {
+      return c.json({ error: 'Guest not found' }, 404);
+    }
+
+    const guest = result[0];
+
+    // Parse JSON fields
+    const parsedGuest = {
+      ...guest,
+      expertise: JSON.parse(guest.expertise),
+      chemistry: JSON.parse(guest.chemistry),
+      domain: JSON.parse(guest.domain),
+    };
+
+    // Get AI Gateway configuration from environment variables
+    const accountId = c.env.CLOUDFLARE_ACCOUNT_ID || 'your-account-id';
+    const gatewayId = c.env.AI_GATEWAY_ID || 'renegade-capital';
+
+    // Construct AI Gateway OpenAI-compatible URL
+    const aiGatewayBaseURL = `https://gateway.ai.cloudflare.com/v1/${accountId}/${gatewayId}/openai`;
+
+    // Generate insight using OpenAI via AI Gateway
+    const prompt = `You are an expert podcast curator for "The Social Justice Investor" podcast, which explores the intersection of finance, AI ethics, and social justice.
+
+Generate a compelling 1-paragraph pitch (3-4 sentences) explaining why ${parsedGuest.name} would be an exceptional guest for the podcast.
+
+Guest Information:
+- Name: ${parsedGuest.name}
+- Background: ${parsedGuest.background}
+- Persona: ${parsedGuest.personaDescription}
+- Expertise: ${parsedGuest.expertise.join(', ')}
+- Tone: ${parsedGuest.tone}
+- Domain: ${parsedGuest.domain.join(', ')}
+- Chemistry: ${parsedGuest.chemistry.join(', ')}
+
+The pitch should highlight their unique perspective, how their work bridges finance and social justice, and what listeners would gain from hearing their story. Be specific and compelling.`;
+
+    // Use fetch to call OpenAI via AI Gateway
+    const openaiResponse = await fetch(`${aiGatewayBaseURL}/v1/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${c.env.OPENAI_API_KEY || ''}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4',
+        messages: [
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+        max_tokens: 300,
+        temperature: 0.8,
+      }),
+    });
+
+    if (!openaiResponse.ok) {
+      const errorText = await openaiResponse.text();
+      console.error('OpenAI API error:', errorText);
+      return c.json({
+        error: 'Failed to generate insight',
+        details: errorText,
+      }, 500);
+    }
+
+    const openaiData: any = await openaiResponse.json();
+    const insight = openaiData.choices?.[0]?.message?.content || 'No insight generated.';
+
+    return c.json({
+      guest: parsedGuest,
+      insight,
+    });
+  } catch (error) {
+    console.error('Insights generation error:', error);
+    return c.json({
+      error: 'Failed to generate guest insight',
+      details: error instanceof Error ? error.message : 'Unknown error',
+    }, 500);
   }
 });
 
