@@ -168,6 +168,7 @@ export const research = [
     "link": "https://www.ajlunited.org",
     "date_added": 1760486400,
     "created_at": 1762017408196,
+    "headshot_url": null    
   },
   {
     "id": "25cafc25-5f19-440b-af38-a22d5f4f0082",
@@ -178,6 +179,9 @@ export const research = [
     "link": "https://www.ruhabenjamin.com",
     "date_added": 1760572800,
     "created_at": 1762017408594,
+    "affiliation": "Princeton University",
+    "headshot_url": "Hosted within press kit via https://www.ruhabenjamin.com/media"
+    "headshot_url": null    
   },
   {
     "id": "94e5d92a-8e50-4e58-9f51-9c6b318dee86",
@@ -188,16 +192,19 @@ export const research = [
     "link": "https://www.dair-institute.org",
     "date_added": 1760745600,
     "created_at": 1762017409033,
+    "headshot_url": null    
   },
   {
     "id": "b4732422-0084-4bb4-b666-105a9aff752a",
-    "name": "Safiya Noble",
+    "name": "Safiya Umoja Noble",
     "domain": "Information Studies",
     "chemistry": "Analytical",
     "topic": "Algorithms of Oppression: How Search Engines Reinforce Racism",
     "link": "https://safiyaunoble.com",
     "date_added": 1760918400,
     "created_at": 1762017409502,
+    "affiliation": "UCLA Center on Race & Digital Justice",
+    "headshot_url": "https://gender.ucla.edu/wp-content/uploads/2019/04/S_Noble.jpg"
   },
   {
     "id": "77e00d50-d746-4e4a-83f0-a06aae7de50b",
@@ -208,6 +215,7 @@ export const research = [
     "link": "https://mathbabe.org",
     "date_added": 1761091200,
     "created_at": 1762017409986,
+    "headshot_url": null
   },
   {
     "id": "0dc6f6d9-0860-429f-9f95-d51b41322050",
@@ -218,6 +226,7 @@ export const research = [
     "link": "https://www.ajlunited.org",
     "date_added": 1760486400,
     "created_at": 1762017587222,
+    "headshot_url": null
   },
   {
     "id": "18b51871-5a42-4337-bde8-bb5797d4bda8",
@@ -228,6 +237,9 @@ export const research = [
     "link": "https://www.ruhabenjamin.com",
     "date_added": 1760572800,
     "created_at": 1762017587675,
+    "affiliation": "Princeton University",
+    "headshot_url": "Hosted within press kit via https://www.ruhabenjamin.com/media"
+    "headshot_url": "https://sites.uci.edu/forum/2020/01/03/ruha-benjamin-race-after-technology-feb-7-2020/"
   },
   {
     "id": "882bd0a7-5e34-43f5-9044-3836fa8b029e",
@@ -238,16 +250,19 @@ export const research = [
     "link": "https://www.dair-institute.org",
     "date_added": 1760745600,
     "created_at": 1762017587960,
+    "headshot_url": null
   },
   {
     "id": "d76b3f65-1ffb-41ec-ae85-0dc41d2b9875",
-    "name": "Safiya Noble",
+    "name": "Safiya Umoja Noble",
     "domain": "Information Studies",
     "chemistry": "Analytical",
     "topic": "Algorithms of Oppression: How Search Engines Reinforce Racism",
     "link": "https://safiyaunoble.com",
     "date_added": 1760918400,
     "created_at": 1762017588325,
+    "affiliation": "UCLA Center on Race & Digital Justice",
+    "headshot_url": "https://gender.ucla.edu/wp-content/uploads/2019/04/S_Noble.jpg"
   },
   {
     "id": "226c441c-94d1-4818-9a05-015ecf4fc115",
@@ -258,6 +273,7 @@ export const research = [
     "link": "https://mathbabe.org",
     "date_added": 1761091200,
     "created_at": 1762017588695,
+    "headshot_url": null
   },
   {
     "id": "9e3def0a-1c97-4ff1-971f-406e4b0ba266",
@@ -268,6 +284,7 @@ export const research = [
     "link": "https://www.ajlunited.org",
     "date_added": 1760486400,
     "created_at": 1762017722822,
+    "headshot_url": null
   },
   {
     "id": "c21883a4-19cf-46f4-9307-f37155a7db89",
@@ -278,7 +295,9 @@ export const research = [
     "link": "https://www.ruhabenjamin.com",
     "date_added": 1760572800,
     "created_at": 1762017723240,
-    "updated_at": NaN
+    "updated_at": NaN,
+    "affiliation": "Princeton University",
+    "headshot_url": "https://sites.uci.edu/forum/2020/01/03/ruha-benjamin-race-after-technology-feb-7-2020/"
   }
 ];
 
@@ -291,7 +310,9 @@ export const guests = [
     "tone": "The Systems Thinker. Expect a sweeping, macro-level conversation that connects disparate dots\u2014geopolitics, labor history, geology, and computer science\u2014with academic rigor and profound insight. She can elevate a technical conversation into a political and philosophical one.",
     "background": "Audience: Academic, Policy Wonks, Ethically-Minded Tech Professionals, Environmental Activists. | Influence: Public Intellectual.",
     "created_at": 1762017826021,
-    "is_book_contributor": 0
+    "is_book_contributor": 0,
+    "affiliation": "USC / Microsoft Research",
+    "headshot_url": "https://images.squarespace-cdn.com/content/v1/655cb99992574744b5a625e4/f960adf2-174d-4c49-aa2c-abdb49983c2a/katephoto_cath_muscat_scaled.png"
   },
   {
     "id": "8c9f4801-d8ed-4b8a-9718-e36b4ee38022",
@@ -301,7 +322,9 @@ export const guests = [
     "tone": "The Abolitionist Scholar. Incisive, historically grounded, and forward-looking. She connects contemporary tech criticism to broader, more radical movements for social liberation, challenging techno-solutionist narratives with a call for systemic change.",
     "background": "Audience: Social Justice Advocates, Academics, DEI Leaders in Tech, Activists. | Influence: Public Intellectual.",
     "created_at": 1762017826375,
-    "is_book_contributor": 0
+    "is_book_contributor": 0,
+    "affiliation": "Princeton University",
+    "headshot_url": "Hosted within press kit via https://www.ruhabenjamin.com/media"
   },
   {
     "id": "31888dd1-ace9-4d4a-8078-8fc52e7b0956",
@@ -311,7 +334,9 @@ export const guests = [
     "tone": "The Digital Archivist. Meticulous and evidence-based, she can unpack the hidden histories, commercial imperatives, and technical decisions that lead to discriminatory outcomes online. Her approach is less about polemic and more about presenting irrefutable evidence.",
     "background": "Audience: General Intellectually Curious, Media Consumers, Librarians/Information Professionals, Marketing Professionals. | Influence: Public Intellectual.",
     "created_at": 1762017826792,
-    "is_book_contributor": 0
+    "is_book_contributor": 0,
+    "affiliation": "UCLA Center on Race & Digital Justice",
+    "headshot_url": "https://gender.ucla.edu/wp-content/uploads/2019/04/S_Noble.jpg"
   },
   {
     "id": "34eb3e88-47e5-4ac1-9396-769985e59783",
@@ -321,7 +346,9 @@ export const guests = [
     "tone": "The Translator. She excels at breaking down the inner workings of code and data science for a non-technical audience. The conversation would be grounded in compelling, real-world examples, from racist soap dispensers to biased mortgage algorithms.",
     "background": "Audience: Journalists, Aspiring Data Scientists, General Audience, Tech Professionals seeking ethical grounding. | Influence: Industry Leader.",
     "created_at": 1762017827177,
-    "is_book_contributor": 0
+    "is_book_contributor": 0,
+    "affiliation": "New York University / UM-Flint",
+    "headshot_url": "https://news.umflint.edu/2024/03/19/nyu-professor-meredith-broussard-to-discuss-bias-in-technology-march-27/"
   },
   {
     "id": "8a2dc201-5104-45a3-85e6-81f436c1c6be",
@@ -331,7 +358,8 @@ export const guests = [
     "tone": "The Investigative Storyteller. A conversation with Eubanks would be rooted in powerful, emotional, and often infuriating narratives. She is a passionate advocate who uses storytelling as a tool for political and social change.",
     "background": "Audience: Policy Makers, Social Workers, Activists, Civil Liberties Advocates, General Audience. | Influence: Public Intellectual.",
     "created_at": 1762017827492,
-    "is_book_contributor": 0
+    "is_book_contributor": 0,
+    "headshot_url": null
   },
   {
     "id": "be5d1e99-afc4-46e4-87ce-9df60bf69c7b",
@@ -341,7 +369,9 @@ export const guests = [
     "tone": "The Rigorous Builder. A deeply technical but exceptionally clear-headed expert. She can articulate the nuanced trade-offs and immense difficulties of implementing fair AI in complex, real-world systems, grounding the conversation in data and peer-reviewed research.",
     "background": "Audience: Tech Professionals, Healthcare Innovators, Bioethicists, Data Scientists. | Influence: Industry Leader.",
     "created_at": 1762017827903,
-    "is_book_contributor": 0
+    "is_book_contributor": 0,
+    "affiliation": "MIT CSAIL / Jameel Clinic",
+    "headshot_url": "https://www.csail.mit.edu/sites/default/files/styles/headshot/public/images/people/profile/IMG_3006.jpeg?h=88c62e36&itok=hf_XXeeJ"
   },
   {
     "id": "19890d52-075b-4fe8-a8aa-de1fa6567c9f",
@@ -352,6 +382,7 @@ export const guests = [
     "background": "Audience: Legal Professionals, Futurists, Civil Liberties Advocates, Tech Ethicists. | Influence: Public Intellectual.",
     "created_at": 1762017828236,
     "is_book_contributor": 0
+    "headshot_url": null
   },
   {
     "id": "346a40a8-938b-4a46-92d8-216b7dd2ca61",
@@ -361,7 +392,9 @@ export const guests = [
     "tone": "The Pragmatic Visionary. A founder and researcher who can speak with authority on both the deep technical challenges of AI alignment and the massive market opportunity in building trustworthy AI. He bridges the gap between academic theory and venture-backed execution.",
     "background": "Audience: VCs, Fintech Professionals, Legal Tech Enthusiasts, Regulators, AI Safety Researchers. | Influence: Industry Leader.",
     "created_at": 1762017828580,
-    "is_book_contributor": 0
+    "is_book_contributor": 0,
+    "affiliation": "Norm AI / Stanford Law",
+    "headshot_url": "https://conferences.law.stanford.edu/futurelaw2024/wp-content/uploads/sites/166/2024/03/Nay_John.jpg"
   },
   {
     "id": "f7838094-2945-4d39-a4be-181abc53c3b2",
@@ -371,7 +404,9 @@ export const guests = [
     "tone": "The Moral Philosopher. Thoughtful, reflective, and foundational. She will challenge the host and audience to think about technology's impact on a deeper, more personal, and existential level, prompting reflection on our own habits and values.",
     "background": "Audience: Academics, Ethicists, Theologians, Intellectually Curious Generalists. | Influence: Public Intellectual.",
     "created_at": 1762017828815,
-    "is_book_contributor": 0
+    "is_book_contributor": 0,
+    "affiliation": "University of Edinburgh",
+    "headshot_url": "https://www.audible.com/author/Shannon-Vallor/B01LY76PK2?srsltid=AfmBOoocI48wF1bsx948dGPYi1X872QEbQ2vxaU5yv8cuH7jAIkZoNSW"
   },
   {
     "id": "2c9b6505-b524-41b7-8cc7-8bcffe33d3a1",
@@ -381,7 +416,9 @@ export const guests = [
     "tone": "The Skeptical Economist. Data-driven, rigorous, and unafraid to challenge prevailing narratives. He can cut through the marketing claims of AI companies to discuss the real, and often negative, consequences for workers and the broader economy.",
     "background": "Audience: Economists, Policy Makers, Business Leaders, Labor Advocates, Finance Professionals. | Influence: Public Intellectual.",
     "created_at": 1762017829100,
-    "is_book_contributor": 0
+    "is_book_contributor": 0,
+    "affiliation": "MIT / Nobel Committee",
+    "headshot_url": "https://en.wikipedia.org/wiki/Daron_Acemoglu"
   },
   {
     "id": "e4674428-865a-4b61-84dd-8525b14cd969",
@@ -391,7 +428,9 @@ export const guests = [
     "tone": "The Statesman. Polished, articulate, and deeply strategic. He can provide a high-level, institutional perspective on how to drive radical change, bridging the worlds of Wall Street, non-profits, and grassroots activism.",
     "background": "Audience: Non-profit Leaders, Philanthropists, Finance Professionals, Policy Makers. | Influence: Global Leader.",
     "created_at": 1762017829465,
-    "is_book_contributor": 0
+    "is_book_contributor": 0,
+    "affiliation": "Ford Foundation",
+    "headshot_url": "https://gcp-na-images.contentstack.com/v3/assets/bltea6093859af6183b/blte54e0c028c224cdf/6998cd01e1ba0036a098e467/time-closers-2026-darren-walker-01.jpg?branch=production&width=3840&quality=75&auto=webp&crop=4:5"
   },
   {
     "id": "252c739e-3002-40d5-bcff-6e0d6e3222f2",
@@ -401,7 +440,9 @@ export const guests = [
     "tone": "The Grassroots Organizer. Passionate, clear, and grounded in the real stories and struggles of workers. She is a powerful moral voice who can translate complex policy debates into urgent human terms.",
     "background": "Audience: Activists, Labor Organizers, Social Justice Advocates, Policy Makers. | Influence: Public Intellectual.",
     "created_at": 1762017829756,
-    "is_book_contributor": 0
+    "is_book_contributor": 0,
+    "affiliation": "National Domestic Workers Alliance",
+    "headshot_url": "https://upload.wikimedia.org/wikipedia/commons/4/41/Ai-jen_Poo%2C_National_Domestic_Workers_Alliance%2C_2015.jpg"
   },
   {
     "id": "b4e886e0-345b-4d92-aa51-10d4543c19c3",
@@ -411,7 +452,9 @@ export const guests = [
     "tone": "The Civic Implementer. Practical, articulate, and deeply knowledgeable about the challenges of bridging the gap between high-level policy goals and the on-the-ground technical and bureaucratic realities of public sector work.",
     "background": "Audience: Public Sector Employees, Civic Tech Community, Policy Students, Government Contractors. | Influence: Niche Expert.",
     "created_at": 1762017830049,
-    "is_book_contributor": 0
+    "is_book_contributor": 0,
+    "affiliation": "State of Maryland",
+    "headshot_url": "https://www.aspendigital.org/wp-content/uploads/2025/10/LM-CB-Headshot-Lauren-Maffeo-e1759960099604.webp"
   },
   {
     "id": "a4fb547a-ed06-4889-9f1e-a99d441c2012",
@@ -421,7 +464,9 @@ export const guests = [
     "tone": "The Insider Chronicler. A sharp, investigative journalist with deep sourcing and a clear-eyed perspective. She can tell the behind-the-scenes story of the AI revolution with nuance and a healthy dose of skepticism, cutting through the industry's carefully crafted narratives.",
     "background": "Audience: Tech Insiders, VCs, Journalists, Policy Makers, General Audience. | Influence: Industry Leader.",
     "created_at": 1762017830369,
-    "is_book_contributor": 0
+    "is_book_contributor": 0,
+    "affiliation": "Investigative Journalist / Author",
+    "headshot_url": "https://images.squarespace-cdn.com/content/v1/64a4ee85e22ab3529f73f53f/615dcd4d-93a7-47ad-9e65-23b3a8b3c9cf/KarenHao.jpg"
   },
   {
     "id": "add71b23-706b-4336-b187-95cd93199658",
@@ -431,17 +476,21 @@ export const guests = [
     "tone": "The People Scientist. An academic expert who can translate complex, peer-reviewed research on human behavior, motivation, and aging into practical insights for leaders, HR professionals, and individual workers navigating career transitions.",
     "background": "Audience: HR Professionals, Business Leaders, Policy Makers, Organizational Psychologists. | Influence: Niche Expert.",
     "created_at": 1762017830678,
-    "is_book_contributor": 0
+    "is_book_contributor": 0,
+    "affiliation": "University of Florida",
+    "headshot_url": "https://b768902a.delivery.rocketcdn.me/wp-content/uploads/profiles/mo-wang-5309-3x4.jpg"
   },
   {
     "id": "8a67620f-9516-4b5c-bc5c-4e138ae28396",
-    "name": "Christoph Nedopil",
+    "name": "Christoph Nedopil Wang",
     "persona_description": "An authority on the global financial flows shaping sustainable development and climate action. Nedopil is an authority on the intersection of global finance and sustainability. As Director of the Green Finance & Development Center, his work focuses on green innovation finance, particularly in the context of China's massive Belt and Road Initiative (BRI) and other emerging economies. He can speak with deep expertise on how trillions of dollars in global capital are being directed, and whether those investments are accelerating or hindering the green transition. His perspective is vital for connecting the podcast's finance and social justice themes on a global, geopolitical scale, examining whether capital can truly be a force for climate action. Chemistry Tag: The Global Economist. Data-driven and policy-focused, able to dissect the complex macro-economic trends, geopolitical incentives, and financial instruments that are shaping the future of sustainable development worldwide. Potential Topic: \"Greening the New Silk Road: Can Global Finance Be Steered to Avert Climate Catastrophe?\"",
     "expertise": "Green Finance, Sustainable Development, Climate Tech.",
     "tone": "The Global Economist. Data-driven and policy-focused, able to dissect the complex macro-economic trends, geopolitical incentives, and financial instruments that are shaping the future of sustainable development worldwide.",
     "background": "Audience: International Relations Specialists, Climate Investors, Policy Makers, ESG Professionals. | Influence: Industry Leader. III. The Stretch Guest List: Expanding Horizons and Attracting New Listeners This list of 12 guests is designed to be provocative and expansive. These individuals are innovators, artists, and thinkers operating at the edges of the core debate. They are chosen to introduce novel concepts, challenge audience assumptions, and bring a creative, sometimes unconventional, energy to the podcast. Booking these guests will signal the podcast's intellectual curiosity and help attract new listener demographics from the worlds of art, philosophy, and deep-tech innovation. | Guest Name | Domain | Unique Angle | |---|---|---| | Kanjun Qiu | AI Entrepreneurship | The \"Philosopher-CEO\" building AI to enhance human agency and potential. | | Sougwen Chung | Art & Robotics | An artist who physically collaborates with robots to explore human-machine creativity. | | Jake Elwes | Art & Queer Theory | A media artist using deepfake drag performance to \"queer\" and subvert AI systems. | | Christine Kuan | Arts Funding & Philanthropy | The leader of a foundation that acts as a venture capitalist for radical, socially-engaged art. | | Neil Harbisson | Cyborg Art & Activism | The world's first legally recognized cyborg, challenging the definition of \"human.\" | | Rodney Foxworth | Social Entrepreneurship | A leader in \"restorative economics\" focused on shifting capital and power to communities. | | Nneka Sobers | Civic Tech & Urban Design | A civic innovator who co-designs urban technology with local communities. | | Kalonji Gilchrist | Arts & Community Organizing | A cultural activator using public art to reclaim history and drive social justice in the South. | | Lynda Gratton | Future of Work & Longevity | A business professor arguing for a radical reinvention of the human life-course. | | Dr. Caroline Smith | Labor Equity & Public Health | A researcher who co-creates policy solutions by centering the voices of underserved workers. | | Sampriti Bhattacharyya | Deep Tech Entrepreneurship | A founder building tangible, zero-emission \"flying boats\" at the nexus of AI and climate tech. | | Dawn Laguens | Social Innovation & Design | A leader who bridges high-stakes political strategy with human-centered design thinking. | Detailed Guest Profiles",
     "created_at": 1762017830999,
-    "is_book_contributor": 0
+    "is_book_contributor": 0,
+    "affiliation": "Green Finance & Development Center",
+    "headshot_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ1i-uCVvcbxGbf3JFQYJwNjx7FhYmnqjtQvw&s"
   },
   {
     "id": "82fc44b7-b93f-4833-b348-a22a48f561b7",
@@ -451,7 +500,8 @@ export const guests = [
     "tone": "The Philosopher-CEO. An intellectually expansive and deeply curious guest who can move fluidly between the technical details of building AI agents and profound questions about the nature of consciousness, creativity, and what it means to live a meaningful life.",
     "background": "Audience: Tech Founders, Philosophers, Futurists, VCs looking for the next paradigm. | Influence: Industry Leader.",
     "created_at": 1762017831344,
-    "is_book_contributor": 0
+    "is_book_contributor": 0,
+    "headshot_url": "https://images.squarespace-cdn.com/content/v1/6455de661f40b056133ed927/3e1dbb7a-0fdf-45b7-a13d-254681803e99/ENXzsGvX0AMTWo5.jpg"
   },
   {
     "id": "90d35092-b6f1-4217-80b6-48de44d85c3f",
@@ -461,7 +511,9 @@ export const guests = [
     "tone": "The Poetic Collaborator. An artist who can speak beautifully and abstractly about the intimate, emergent, and often surprising relationship she has developed with her robotic partners. The conversation would be less about technology and more about creativity, intuition, and collaboration itself.",
     "background": "Audience: Art World, Creative Technologists, Design Enthusiasts, AI Researchers interested in creativity. | Influence: Niche Expert (High Cultural Influence).",
     "created_at": 1762017831625,
-    "is_book_contributor": 0
+    "is_book_contributor": 0,
+    "affiliation": "SCILICET / Artist",
+    "headshot_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRpV2ki0C3RpuZCQMKvHEX2wJq9Ad3qZkKf0Q&s"
   },
   {
     "id": "18ac3549-57e3-4fd5-b3d3-317c49ba1f32",
@@ -471,7 +523,9 @@ export const guests = [
     "tone": "The Radical Subverter. Witty, critical, and playful. Elwes uses the language and aesthetics of art and queer culture to unpack and expose the often dry, technical subject of algorithmic bias, making it immediate, political, and entertaining.",
     "background": "Audience: LGBTQ+ Community, Art Students, Media Theorists, AI Ethicists. | Influence: Niche Expert (High Cultural Influence).",
     "created_at": 1762017831812,
-    "is_book_contributor": 0
+    "is_book_contributor": 0,
+    "affiliation": "Media Artist",
+    "headshot_url": "https://zkm.de/system/files/styles/img_node_media_detail_portrait/private/field_media_image/2023/05/09/004102/jake_elwes_artist_portrait_-_credit_teodora_kosanovic.jpg?itok=tr8bQ1k5"
   },
   {
     "id": "a68e6c02-b90d-445b-9c14-0cc84ddefed1",
@@ -481,7 +535,9 @@ export const guests = [
     "tone": "The Culture Catalyst. A sharp, strategic leader who operates at the intersection of art and commerce. She understands both the passion of artistic creation and the hard-nosed realities of fundraising, board management, and building sustainable careers for artists.",
     "background": "Audience: Artists, Philanthropists, Non-Profit Leaders, Cultural Critics, Impact Investors. | Influence: Industry Leader.",
     "created_at": 1762017832138,
-    "is_book_contributor": 0
+    "is_book_contributor": 0,
+    "affiliation": "Creative Capital Foundation",
+    "headshot_url": "Accessed via Cultured Mag feature https://www.culturedmag.com/article/2023/11/15/creative-capital-christine-kuan-nonprofit/"
   },
   {
     "id": "72315dca-dc6c-4287-afee-3b4068b08368",
@@ -491,7 +547,9 @@ export const guests = [
     "tone": "The Post-Human Pioneer. A calm, matter-of-fact discussant of a reality that sounds like science fiction. He can describe his unique sensory experience in a way that is both fascinating and disorienting, pushing the audience to question their own unexamined assumptions about what it means to be human.",
     "background": "Audience: Bio-hackers, Futurists, Transhumanists, Artists, Philosophers. | Influence: Niche Expert (High Cultural Influence).",
     "created_at": 1762017832524,
-    "is_book_contributor": 0
+    "is_book_contributor": 0,
+    "affiliation": "Cyborg Foundation",
+    "headshot_url": "Accessed via official portfolio https://www.cyborgarts.com/neil-harbisson"
   },
   {
     "id": "e0c1a922-ff13-4ff1-af18-dc956527ef41",
@@ -501,7 +559,9 @@ export const guests = [
     "tone": "The Systems Remixer. A sharp, critical thinker who can speak with clarity and conviction about the need to redesign economic systems from the community level up. He can connect abstract economic theory to the tangible work of building local, equitable enterprises.",
     "background": "Audience: Social Entrepreneurs, Impact Investors, Community Organizers, Philanthropists. | Influence: Industry Leader.",
     "created_at": 1762017833015,
-    "is_book_contributor": 0
+    "is_book_contributor": 0,
+    "affiliation": "Worthmore / Common Future",
+    "headshot_url": "Accessed via consulting portal https://www.worthmore.co/"
   },
   {
     "id": "26736528-7073-46e3-84bb-ed1b7ddb71f6",
@@ -511,7 +571,9 @@ export const guests = [
     "tone": "The Urban Co-Designer. Passionate and articulate about the importance of centering lived experience in the design of complex city services and technologies. She can provide concrete examples of how this collaborative process works in practice.",
     "background": "Audience: Urban Planners, Civic Tech Professionals, Community Activists, Government Employees. | Influence: Niche Expert.",
     "created_at": 1762017833365,
-    "is_book_contributor": 0
+    "is_book_contributor": 0,
+    "affiliation": "Cornell Tech Urban Tech Hub",
+    "headshot_url": "Accessed via Cornell Tech directory https://urban.tech.cornell.edu/people/nneka-sobers/"
   },
   {
     "id": "61ed7dad-a361-402c-814e-f0129157b734",
@@ -521,7 +583,9 @@ export const guests = [
     "tone": "The Cultural Activator. A passionate and grounded community leader who can speak to the tangible power of art to bring people together, start difficult conversations, and demand political change.",
     "background": "Audience: Artists, Activists, Community Organizers, Historians, Museum Professionals. | Influence: Niche Expert.",
     "created_at": 1762017833738,
-    "is_book_contributor": 0
+    "is_book_contributor": 0,
+    "affiliation": "KHARI Creative / 21 Dreams",
+    "headshot_url": "Accessed via professional profile https://ovou.com/kalonji"
   },
   {
     "id": "8f369f95-aa58-4c73-ab34-a63c8577050f",
@@ -531,7 +595,9 @@ export const guests = [
     "tone": "The Life Architect. A strategic and forward-thinking academic who can provide a clear, practical roadmap for navigating a radically different future life course. She makes a huge societal shift feel personal and manageable.",
     "background": "Audience: Business Leaders, HR Professionals, Financial Planners, anyone over 40 trying to plan their future. | Influence: Industry Leader.",
     "created_at": 1762017833989,
-    "is_book_contributor": 0
+    "is_book_contributor": 0,
+    "affiliation": "London Business School",
+    "headshot_url": "Accessed via Champions Speakers https://champions-speakers.co.uk/speaker-agent/lynda-gratton"
   },
   {
     "id": "34a6cd16-1821-4277-9f27-fc18c4fab7ad",
@@ -551,7 +617,9 @@ export const guests = [
     "tone": "The Deep Tech Builder. A brilliant and driven founder who can lucidly explain complex engineering concepts and narrate the unique challenges of raising capital for and building a company centered on ambitious hardware.",
     "background": "Audience: Climate Tech Investors, Engineers, Entrepreneurs, VCs. | Influence: Industry Leader.",
     "created_at": 1762017834756,
-    "is_book_contributor": 0
+    "is_book_contributor": 0,
+    "affiliation": "Founder & CEO, Navier",
+    "headshot_url": "https://www.freethink.com/wp-content/uploads/2025/10/Sampriti-Bhattacharyya-headshot.jpg?quality=75&w=600&h=600&crop=1"
   },
   {
     "id": "a0802af6-6b4e-4365-a193-f9b5b24f8fb8",
@@ -561,7 +629,8 @@ export const guests = [
     "tone": "The Strategic Innovator. A seasoned, media-savvy, and candid executive who can speak with authority about leading massive organizations through cultural and political battles, and then pivot to discussing the power of empathy and design to create new solutions.",
     "background": "Audience: Non-Profit Leaders, Brand Strategists, Design Thinkers, Political Operatives, Public Health Advocates. | Influence: Global Leader.",
     "created_at": 1762017835203,
-    "is_book_contributor": 0
+    "is_book_contributor": 0,
+    "affiliation": "IDEO / Planned Parenthood",
+    "headshot_url": "https://www.advocate.com/media-library/dawn-laguens.jpg?id=32669177&width=2000&height=1500&coordinates=143,0,183,0"
   }
 ];
-
