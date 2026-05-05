@@ -17,7 +17,9 @@ const handler: ExportedHandler<Bindings> = {
         url.pathname === '/openapi.json' ||
         url.pathname === '/swagger' ||
         url.pathname === '/scalar' ||
-        url.pathname === '/docs') {
+        url.pathname === '/docs' ||
+        url.pathname === '/context' ||
+        url.pathname === '/health') {
       return honoApp.fetch(request, env, ctx);
     }
 

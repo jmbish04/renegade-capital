@@ -1,5 +1,4 @@
 ---
-import { ComponentExample } from "@/components/ComponentExample";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { siteConfig } from "@/lib/config";
 ---
@@ -8,5 +7,174 @@ import { siteConfig } from "@/lib/config";
   title={siteConfig.name}
   description={siteConfig.description}
 >
-  <ComponentExample client:load />
+  <!-- Hero -->
+  <section class="relative flex min-h-[80svh] flex-col items-center justify-center overflow-hidden bg-background px-6 py-24 text-center">
+    <!-- Subtle gradient orb -->
+    <div
+      aria-hidden="true"
+      class="pointer-events-none absolute inset-0 flex items-center justify-center"
+    >
+      <div class="h-[600px] w-[600px] rounded-full bg-primary/10 blur-3xl" />
+    </div>
+
+    <div class="relative z-10 mx-auto max-w-3xl">
+      <span class="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-muted/50 px-4 py-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+        <span class="size-1.5 rounded-full bg-primary animate-pulse" aria-hidden="true"></span>
+        Now in Beta
+      </span>
+
+      <h1 class="mt-6 text-4xl font-bold leading-tight tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+        <span class="text-primary">Renegade</span> Capital
+      </h1>
+
+      <p class="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+        Two AI-powered advisors. One radical mission: align your wealth with your
+        values—while exploring the ethical, financial, and cultural frontiers of
+        Artificial Intelligence.
+      </p>
+
+      <div class="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+        <a
+          href="/investor"
+          class="inline-flex h-11 items-center justify-center rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          Talk to the Investor AI
+        </a>
+        <a
+          href="/podcast"
+          class="inline-flex h-11 items-center justify-center rounded-lg border border-border bg-background px-6 text-sm font-semibold text-foreground shadow-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          Book a Podcast Guest
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dual mission -->
+  <section class="bg-muted/30 px-6 py-20">
+    <div class="mx-auto max-w-5xl">
+      <h2 class="text-center text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+        The Dual Mission
+      </h2>
+      <p class="mx-auto mt-4 max-w-2xl text-center text-sm text-muted-foreground sm:text-base">
+        Renegade Capital lives at the intersection of two urgent questions.
+      </p>
+
+      <div class="mt-12 grid gap-8 sm:grid-cols-2">
+        <!-- Mission 1: Social Justice Investing -->
+        <div class="group rounded-2xl border border-border bg-card p-8 transition-shadow hover:shadow-md">
+          <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <!-- Dollar-sign icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="1" x2="12" y2="23"></line>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-foreground">Social Justice Investing</h3>
+          <p class="mt-3 text-sm leading-relaxed text-muted-foreground">
+            Rooted in Andrea Longton's <em>The Social Justice Investor</em>, our Investor AI
+            helps you build wealth while closing the wealth gap, combating climate change,
+            defunding private prisons, and building a genuinely inclusive economy—one
+            portfolio at a time.
+          </p>
+          <a
+            href="/investor"
+            class="mt-6 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+          >
+            Start investing with purpose
+            <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+
+        <!-- Mission 2: AI Ethics & Podcast -->
+        <div class="group rounded-2xl border border-border bg-card p-8 transition-shadow hover:shadow-md">
+          <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <!-- Mic icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+              <line x1="12" y1="19" x2="12" y2="23"></line>
+              <line x1="8" y1="23" x2="16" y2="23"></line>
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-foreground">AI, Finance & The New Jim Code</h3>
+          <p class="mt-3 text-sm leading-relaxed text-muted-foreground">
+            Our Podcast Curator AI draws on the "Renegade Capital Prospectus" to recommend
+            guests at the frontier of ethical AI and finance—practitioners, algorithmic
+            interrogators, and scholars like Ruha Benjamin, Safiya Umoja Noble, and
+            Kate Crawford—and designs narrative arcs that matter.
+          </p>
+          <a
+            href="/podcast"
+            class="mt-6 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+          >
+            Curate your next episode
+            <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="px-6 py-20">
+    <div class="mx-auto max-w-4xl">
+      <h2 class="text-center text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+        How It Works
+      </h2>
+      <div class="mt-12 grid gap-8 sm:grid-cols-3">
+        {[
+          {
+            step: "01",
+            title: "Ask the Agent",
+            desc: "Type your question—whether it's about ESG screening, portfolio alignment, or booking a podcast guest.",
+          },
+          {
+            step: "02",
+            title: "AI-Powered Insight",
+            desc: "Each agent is preloaded with deep domain context: the Social Justice Investor philosophy or the Renegade Capital Prospectus.",
+          },
+          {
+            step: "03",
+            title: "Act with Intention",
+            desc: "Walk away with actionable recommendations grounded in justice, not just returns.",
+          },
+        ].map(({ step, title, desc }) => (
+          <div class="flex flex-col gap-3">
+            <span class="text-4xl font-bold text-primary/20">{step}</span>
+            <h3 class="text-base font-semibold text-foreground">{title}</h3>
+            <p class="text-sm leading-relaxed text-muted-foreground">{desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="bg-primary/5 px-6 py-20">
+    <div class="mx-auto max-w-2xl text-center">
+      <h2 class="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+        Ready to go renegade?
+      </h2>
+      <p class="mt-4 text-sm text-muted-foreground sm:text-base">
+        Your money is one of your most powerful tools for social change. Start
+        using it intentionally.
+      </p>
+      <div class="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+        <a
+          href="/investor"
+          class="inline-flex h-11 items-center justify-center rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground shadow transition-colors hover:bg-primary/90"
+        >
+          Social Justice Investor AI
+        </a>
+        <a
+          href="/podcast"
+          class="inline-flex h-11 items-center justify-center rounded-lg border border-border bg-background px-6 text-sm font-semibold text-foreground shadow-sm transition-colors hover:bg-muted"
+        >
+          Podcast Curator AI
+        </a>
+      </div>
+    </div>
+  </section>
 </BaseLayout>
+

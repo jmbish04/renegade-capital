@@ -1,6 +1,6 @@
 {
-  "name": "core-template-cfw-assets-astro-shadcn",
-  "main": "dist/_worker.js/index.js",
+  "name": "social-justice-investing-ai",
+  "main": "src/_worker.ts",
   "compatibility_date": "2026-03-09",
   "compatibility_flags": ["nodejs_compat"],
   "upload_source_maps": true,
@@ -33,9 +33,8 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "core-template-cfw-assets-astro-shadcn",
-      "database_id": "d126139f-6f57-49d2-bbc4-d20bbd46bbf4",
-      "preview_database_id": "d126139f-6f57-49d2-bbc4-d20bbd46bbf4",
+      "database_name": "social-justice-investing-ai",
+      "database_id": "c360a56e-56fd-4d41-b04d-b32643771e5e",
       "migrations_dir": "drizzle",
     },
   ],
@@ -51,9 +50,9 @@
       "secret_name": "CLOUDFLARE_ACCOUNT_ID",
     },
     {
-      "binding": "CLOUDFLARE_API_TOKEN",
+      "binding": "CLOUDFLARE_WRANGLER_API_TOKEN",
       "store_id": "8c42fa70938644e0a8a109744467375f",
-      "secret_name": "CLOUDFLARE_API_TOKEN",
+      "secret_name": "CLOUDFLARE_WRANGLER_API_TOKEN",
     },
     {
       "binding": "CLOUDFLARE_SECRETS_STORE_TOKEN",

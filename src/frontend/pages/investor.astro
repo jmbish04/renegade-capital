@@ -1,0 +1,43 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { InvestorChatIsland } from "@/components/InvestorChatIsland";
+---
+
+<BaseLayout
+  title="Social Justice Investor AI — Renegade Capital"
+  description="Build wealth while advancing social equity. Get AI-powered guidance on values-aligned investing, ESG screening, and ethical portfolio construction."
+>
+  <div class="flex flex-1 flex-col">
+    <!-- Page header -->
+    <div class="border-b border-border bg-background px-6 py-4">
+      <div class="mx-auto flex max-w-3xl items-start gap-4">
+        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="size-5 text-primary"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <line x1="12" y1="1" x2="12" y2="23"></line>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-base font-semibold text-foreground">Social Justice Investor AI</h1>
+          <p class="text-sm text-muted-foreground">
+            Rooted in Andrea Longton's <em>The Social Justice Investor</em>. Ask about
+            ESG investing, ethical divestment, bridging the wealth gap, or building a
+            values-aligned portfolio.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat island (full height) -->
+    <div class="mx-auto flex w-full max-w-3xl flex-1 flex-col" style="height: calc(100svh - var(--header-height) - 5rem);">
+      <InvestorChatIsland client:load />
+    </div>
+  </div>
+</BaseLayout>
