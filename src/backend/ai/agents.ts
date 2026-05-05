@@ -10,9 +10,8 @@
  */
 
 export type ModelId =
-  | '@cf/meta/llama-3.2-3b-instruct'
+  | '@cf/openai/gpt-oss-120b'
   | '@cf/meta/llama-3.3-70b-instruct-fp8-fast'
-  | '@cf/mistral/mistral-7b-instruct-v0.1'
   | (string & {});
 
 export type AgentConfig = {
@@ -112,12 +111,12 @@ You are intellectually rigorous and culturally fluent. You speak with the author
 export const AGENTS: Record<string, AgentConfig> = {
   investor: {
     name: 'SocialJusticeInvestorAgent',
-    model: '@cf/meta/llama-3.2-3b-instruct',
+    model: '@cf/openai/gpt-oss-120b',
     systemPrompt: SOCIAL_JUSTICE_INVESTOR_SYSTEM_PROMPT,
   },
   podcast: {
     name: 'PodcastGuestAgent',
-    model: '@cf/meta/llama-3.2-3b-instruct',
+    model: '@cf/openai/gpt-oss-120b',
     systemPrompt: PODCAST_GUEST_SYSTEM_PROMPT,
   },
 };
