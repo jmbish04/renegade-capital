@@ -30,8 +30,9 @@ export const siteConfig: SiteConfig = {
   },
   navItems: [
     { href: "/", label: "Home" },
-    { href: "/investor", label: "Investor AI" },
-    { href: "/podcast", label: "Podcast Curator" },
-    { href: "/docs", label: "Docs", external: true },
+    { href: "/investor", label: "🏦 Investor AI" },
+    { href: "/podcast", label: "🔊 Podcast Curator" },
+    { href: "/clash", label: "✍️ Redlining in 2026" },
+    { href: "/docs", label: "🤓 Docs", external: true },
   ],
 };
