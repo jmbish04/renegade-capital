@@ -7,7 +7,7 @@
  */
 
 import * as React from 'react';
-import { AssistantRuntimeProvider, ThreadPrimitive, ComposerPrimitive, MessagePrimitive, ActionBarPrimitive } from '@assistant-ui/react';
+import { AssistantRuntimeProvider, ThreadPrimitive, ComposerPrimitive, MessagePrimitive, ActionBarPrimitive, useAui } from '@assistant-ui/react';
 import { useChatRuntime } from '@assistant-ui/react-ai-sdk';
 import { DefaultChatTransport } from 'ai';
 import { SendHorizonalIcon, StopCircleIcon, RefreshCwIcon, CopyIcon } from 'lucide-react';
@@ -79,6 +79,21 @@ function AssistantMessage() {
   );
 }
 
+function SuggestionButton({ prompt }: { prompt: string }) {
+  const aui = useAui();
+  return (
+    <button
+      type="button"
+      className="rounded-full border border-border bg-muted/50 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+      onClick={() => {
+        aui.composer().setText(prompt);
+      }}
+    >
+      {prompt}
+    </button>
+  );
+}
+
 function Thread() {
   return (
     <ThreadPrimitive.Root className="flex h-full flex-col bg-background">
@@ -115,27 +130,7 @@ function Thread() {
                 'Design a 3-episode arc on AI and the racial wealth gap',
                 'Who should I pair with Ruha Benjamin?',
               ].map((prompt) => (
-                <button
-                  type="button"
-                  key={prompt}
-                  className="rounded-full border border-border bg-muted/50 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                  onClick={(e) => {
-                    const textarea = (e.target as HTMLElement)
-                      .closest('[data-assistant-ui]')
-                      ?.querySelector('textarea');
-                    if (textarea) {
-                      const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-                        window.HTMLTextAreaElement.prototype,
-                        'value'
-                      )?.set;
-                      nativeInputValueSetter?.call(textarea, prompt);
-                      textarea.dispatchEvent(new Event('input', { bubbles: true }));
-                      textarea.focus();
-                    }
-                  }}
-                >
-                  {prompt}
-                </button>
+                <SuggestionButton key={prompt} prompt={prompt} />
               ))}
             </div>
           </div>
