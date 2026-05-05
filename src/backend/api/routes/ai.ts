@@ -34,7 +34,7 @@ const textToSpeechSchema = z.object({
 
 // POST /api/ai/chat
 aiRouter.post('/chat', zValidator('json', chatSchema), async (c) => {
-  const { messages, model = '@cf/meta/llama-3.2-3b-instruct' } = c.req.valid('json');
+  const { messages, model = '@cf/openai/gpt-oss-120b' } = c.req.valid('json');
 
   try {
     const response = await c.env.AI.run(model, {
@@ -51,7 +51,7 @@ aiRouter.post('/chat', zValidator('json', chatSchema), async (c) => {
 
 // POST /api/ai/chat/stream
 aiRouter.post('/chat/stream', zValidator('json', chatSchema), async (c) => {
-  const { messages, model = '@cf/meta/llama-3.2-3b-instruct' } = c.req.valid('json');
+  const { messages, model = '@cf/openai/gpt-oss-120b' } = c.req.valid('json');
 
   try {
     const stream = await c.env.AI.run(model, {
