@@ -1,26 +1,14 @@
-// @ts-check
-// import cloudflare from "@astrojs/cloudflare";
-import react from "@astrojs/react";
-import tailwindcss from "@tailwindcss/vite";
-import { defineConfig } from "astro/config";
-
-const site = process.env.SITE ?? "http://localhost:4321";
-const base = process.env.BASE || "/";
+import { defineConfig } from 'astro/config';
+import cloudflare from '@astrojs/cloudflare';
+import react from '@astrojs/react';
+import tailwind from '@tailwindcss/vite';
 
 // https://astro.build/config
 export default defineConfig({
-  site,
-  srcDir: "./src/frontend",
-  base,
-  output: "static",
-  // adapter: cloudflare({
-  //   imageService: "cloudflare",
-  //   platformProxy: {
-  //     enabled: true,
-  //   },
-  // }),
-  integrations: [react()],
+  output: 'hybrid',
+  adapter: cloudflare(),
   vite: {
-    plugins: [tailwindcss()],
+    plugins: [tailwind()],
   },
+  integrations: [react()],
 });
