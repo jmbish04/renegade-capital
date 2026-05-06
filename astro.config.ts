@@ -5,6 +5,7 @@ import tailwind from '@tailwindcss/vite';
 
 // https://astro.build/config
 export default defineConfig({
+  srcDir: './src/frontend',
   output: 'server',
   adapter: cloudflare(),
   vite: {
