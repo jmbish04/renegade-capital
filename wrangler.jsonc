@@ -31,6 +31,9 @@
     "binding": "AI",
     "remote": true,
   },
+  "vars": {
+    "AI_GATEWAY_ID": "default-gateway"
+  },
   "d1_databases": [
     {
       "binding": "DB",
