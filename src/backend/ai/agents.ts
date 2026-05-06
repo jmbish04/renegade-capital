@@ -28,7 +28,7 @@ export type AgentConfig = {
  * while adding observability, caching, and rate-limiting.
  */
 export function getAIGatewayBaseURL(accountId: string, gatewayId: string): string {
-  return `https://gateway.ai.cloudflare.com/v1/${accountId}/${gatewayId}/openai`;
+  return `https://gateway.ai.cloudflare.com/v1/${accountId}/${gatewayId}/compat`;
 }
 
 /**
@@ -170,12 +170,12 @@ You have access to interactive tools to create engaging podcast content AND a gu
 export const AGENTS: Record<string, AgentConfig> = {
   investor: {
     name: 'SocialJusticeInvestorAgent',
-    model: 'gpt-4o',
+    model: '@workers-ai/@cf/openai/gpt-oss-120b',
     systemPrompt: SOCIAL_JUSTICE_INVESTOR_SYSTEM_PROMPT,
   },
   podcast: {
     name: 'PodcastGuestAgent',
-    model: 'gpt-4o',
+    model: '@workers-ai/@cf/openai/gpt-oss-120b',
     systemPrompt: PODCAST_GUEST_SYSTEM_PROMPT,
   },
 };
