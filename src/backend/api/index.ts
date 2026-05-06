@@ -21,6 +21,9 @@ import { clashRouter } from "./routes/clash";
 import { mediaRouter } from './routes/media';
 import { analyticsRouter } from './routes/analytics';
 import { guestsRouter } from './routes/guests';
+import { episodesRouter } from './routes/episodes';
+import { researchRouter } from './routes/research';
+import { guestsRouter } from './routes/guests';
 import { visitorLogs } from '../db/schema';
 import { drizzle } from 'drizzle-orm/d1';
 
@@ -99,6 +102,8 @@ app.route('/api/documents', documentsRouter);
 app.route('/api/media', mediaRouter);
 app.route('/api/analytics', analyticsRouter);
 app.route('/api/guests', guestsRouter);
+app.route('/api/episodes', episodesRouter);
+app.route('/api/research', researchRouter);
 app.route('/', openapiRouter);
 
 export { app };
