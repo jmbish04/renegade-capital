@@ -2,27 +2,19 @@
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { GuestCard } from "@/components/GuestCard";
 import { siteConfig } from "@/lib/config";
-import { guests as fallbackGuests } from "@/backend/data";
 
-// Fetch all guests from API, fallback to static data during build
+// Fetch all guests exclusively from the new D1 API
 let guests = [];
 try {
   const response = await fetch(new URL('/api/guests', Astro.url.origin));
   const data = await response.json();
   guests = data.guests || [];
 } catch (error) {
-  // During static build, API server isn't running - use fallback data
-  console.log('Using fallback guest data for static build');
-  guests = fallbackGuests.map((g: any) => ({
-    ...g,
-    expertise: typeof g.expertise === 'string' ? JSON.parse(g.expertise) : g.expertise,
-    chemistry: typeof g.tone === 'string' ? [g.tone] : (g.chemistry || []),
-    domain: typeof g.background === 'string' ? [g.background] : (g.domain || []),
-  }));
+  console.error('API Server unavailable. Failed to fetch D1 guests.', error);
+  guests = [];
 }
 
 // Generate compelling pairings based on complementary chemistry and domains
-// We'll create 3-4 suggested matchups for episode pairings
 const matchups = [];
 
 // Helper function to find complementary guests
@@ -32,19 +24,16 @@ function findComplementaryGuest(targetGuest: any, allGuests: any[]) {
     .map((guest: any) => {
       let score = 0;
 
-      // Chemistry overlap (shared archetypes)
       const chemistryOverlap = guest.chemistry.filter((c: string) =>
         targetGuest.chemistry.includes(c)
       ).length;
       score += chemistryOverlap * 2;
-
-      // Domain overlap (shared domains)
+    
       const domainOverlap = guest.domain.filter((d: string) =>
         targetGuest.domain.includes(d)
       ).length;
       score += domainOverlap * 3;
 
-      // Complementary domains (different but related)
       const hasComplementaryDomain = guest.domain.some((d: string) =>
         !targetGuest.domain.includes(d) &&
         (targetGuest.domain.includes('AI Ethics') || targetGuest.domain.includes('Finance'))
@@ -65,10 +54,10 @@ for (let i = 0; i < Math.min(4, guests.length); i++) {
   const pairedGuest = findComplementaryGuest(targetGuest, guests);
 
   if (pairedGuest) {
-    // Calculate shared attributes
     const sharedChemistry = targetGuest.chemistry.filter((c: string) =>
       pairedGuest.chemistry.includes(c)
     );
+
     const sharedDomains = targetGuest.domain.filter((d: string) =>
       pairedGuest.domain.includes(d)
     );
@@ -110,11 +99,9 @@ for (let i = 0; i < Math.min(4, guests.length); i++) {
       </p>
     </div>
 
-    <!-- Matchup Episodes -->
     <div class="space-y-16">
       {matchups.map((matchup: any, index: number) => (
         <div key={matchup.id} class="relative">
-          <!-- Episode Header -->
           <div class="mb-8">
             <div class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-xs font-medium text-primary">
               <span class="size-1.5 rounded-full bg-primary" aria-hidden="true"></span>
@@ -135,9 +122,7 @@ for (let i = 0; i < Math.min(4, guests.length); i++) {
             )}
           </div>
 
-          <!-- Side-by-Side Guest Cards -->
           <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
-            <!-- Guest 1 -->
             <div class="flex flex-col">
               <div class="mb-3 flex items-center gap-2">
                 <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
@@ -156,7 +141,6 @@ for (let i = 0; i < Math.min(4, guests.length); i++) {
               />
             </div>
 
-            <!-- Connector Icon -->
             <div class="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
               <div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 border-4 border-background">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -165,7 +149,6 @@ for (let i = 0; i < Math.min(4, guests.length); i++) {
               </div>
             </div>
 
-            <!-- Guest 2 -->
             <div class="flex flex-col">
               <div class="mb-3 flex items-center gap-2">
                 <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
@@ -185,7 +168,6 @@ for (let i = 0; i < Math.min(4, guests.length); i++) {
             </div>
           </div>
 
-          <!-- Divider -->
           {index < matchups.length - 1 && (
             <div class="mt-16 border-t border-border"></div>
           )}
@@ -196,7 +178,7 @@ for (let i = 0; i < Math.min(4, guests.length); i++) {
     {matchups.length === 0 && (
       <div class="flex flex-col items-center justify-center py-16 text-center">
         <p class="text-lg text-muted-foreground">
-          No matchups available yet. Check back soon!
+          No matchups available yet. Check back soon or verify your database connection.
         </p>
         <a
           href="/heroes"
