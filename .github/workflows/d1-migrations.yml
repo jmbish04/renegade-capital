@@ -1,0 +1,54 @@
+name: D1 DB Operations
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'drizzle/**'
+      - 'src/backend/db/seed.sql'
+      - '.github/workflows/d1-migrations.yml'
+  workflow_dispatch:
+    inputs:
+      run_seeds:
+        description: 'Execute seed.sql against remote D1 database?'
+        required: true
+        type: boolean
+        default: false
+
+jobs:
+  migrate-and-seed:
+    name: Apply Migrations & Seeds
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply Remote D1 Migrations
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_WRANGLER_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 migrations apply DB --remote
+
+      - name: Execute Remote Seeds
+        if: ${{ github.event.inputs.run_seeds == 'true' }}
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_WRANGLER_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 execute DB --remote --file=src/backend/db/seed.sql
