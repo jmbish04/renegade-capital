@@ -25,7 +25,9 @@ export type AgentConfig = {
  * while adding observability, caching, and rate-limiting.
  */
 export function getAIGatewayBaseURL(env: Env): string {
-  return `https://gateway.ai.cloudflare.com/v1/${env.CLOUDFLARE_ACCOUNT_ID}/${env.AI_GATEWAY_ID}/compat`;
+  const accountId = await env.CLOUDFLARE_ACCOUNT_ID.get();
+  const gatewayId = env.AI_GATEWAY_ID;
+  return `https://gateway.ai.cloudflare.com/v1/${accountId}/${gatewayId}/compat`;
 }
 
 
