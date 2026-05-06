@@ -23,7 +23,6 @@ import { analyticsRouter } from './routes/analytics';
 import { guestsRouter } from './routes/guests';
 import { episodesRouter } from './routes/episodes';
 import { researchRouter } from './routes/research';
-import { guestsRouter } from './routes/guests';
 import { visitorLogs } from '../db/schema';
 import { drizzle } from 'drizzle-orm/d1';
 

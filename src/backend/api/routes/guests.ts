@@ -124,9 +124,9 @@ guestsRouter.get('/search', async (c) => {
 guestsRouter.get('/:id', async (c) => {
   try {
     const db = drizzle(c.env.DB);
-    const id = parseInt(c.req.param('id'));
+    const id = c.req.param('id');
 
-    if (isNaN(id)) {
+    if (!id) {
       return c.json({ error: 'Invalid guest ID' }, 400);
     }
 
