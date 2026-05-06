@@ -10,10 +10,7 @@
  */
 
 export type ModelId =
-  | 'gpt-4o'
-  | 'gpt-4o-mini'
-  | 'gpt-4-turbo'
-  | 'gpt-3.5-turbo'
+  | 'workers-ai/@cf/openai/gpt-oss-120b'
   | (string & {});
 
 export type AgentConfig = {
@@ -27,9 +24,10 @@ export type AgentConfig = {
  * The gateway proxies requests to the underlying provider (OpenAI)
  * while adding observability, caching, and rate-limiting.
  */
-export function getAIGatewayBaseURL(accountId: string, gatewayId: string): string {
-  return `https://gateway.ai.cloudflare.com/v1/${accountId}/${gatewayId}/compat`;
+export function getAIGatewayBaseURL(env: Env): string {
+  return `https://gateway.ai.cloudflare.com/v1/${env.CLOUDFLARE_ACCOUNT_ID}/${env.AI_GATEWAY_ID}/compat`;
 }
+
 
 /**
  * SocialJusticeInvestorAgent — Powered by Andrea Longton's philosophy in
@@ -170,12 +168,12 @@ You have access to interactive tools to create engaging podcast content AND a gu
 export const AGENTS: Record<string, AgentConfig> = {
   investor: {
     name: 'SocialJusticeInvestorAgent',
-    model: '@workers-ai/@cf/openai/gpt-oss-120b',
+    model: 'workers-ai/@cf/openai/gpt-oss-120b',
     systemPrompt: SOCIAL_JUSTICE_INVESTOR_SYSTEM_PROMPT,
   },
   podcast: {
     name: 'PodcastGuestAgent',
-    model: '@workers-ai/@cf/openai/gpt-oss-120b',
+    model: 'workers-ai/@cf/openai/gpt-oss-120b',
     systemPrompt: PODCAST_GUEST_SYSTEM_PROMPT,
   },
 };
