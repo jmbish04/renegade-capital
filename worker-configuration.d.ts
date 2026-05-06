@@ -7,6 +7,7 @@ declare namespace Cloudflare {
   }
   interface Env {
     DB: D1Database;
+    AI_GATEWAY_ID String;
     GITHUB_TOKEN: SecretsStoreSecret;
     CLOUDFLARE_ACCOUNT_ID: SecretsStoreSecret;
     CLOUDFLARE_WRANGLER_API_TOKEN: SecretsStoreSecret;
