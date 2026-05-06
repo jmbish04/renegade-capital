@@ -10,7 +10,7 @@
     "fmt": "oxfmt",
     "lint": "oxlint",
     "check": "oxlint && oxfmt",
-    "db:generate": "drizzle-kit generate",
+    "db:generate": "drizzle-kit generate && node -e \"const fs=require('fs');const p='./drizzle';fs.readdirSync(p).filter(f=>f.endsWith('.sql')).forEach(f=>{const fP=p+'/'+f;fs.writeFileSync(fP,fs.readFileSync(fP,'utf8').replace(/CREATE TABLE (?!IF NOT EXISTS)/g,'CREATE TABLE IF NOT EXISTS '));})\"",
     "migrate:local": "pnpm run db:generate && npx wrangler d1 migrations apply DB --local",
     "migrate:remote": "pnpm run db:generate && npx wrangler d1 migrations apply DB --remote",
     "deploy": "pnpm run build && cp .assetsignore dist/.assetsignore && pnpm run migrate:remote && npx wrangler deploy",
