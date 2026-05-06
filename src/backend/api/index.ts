@@ -18,6 +18,13 @@ import { aiRouter } from './routes/ai';
 import { documentsRouter } from './routes/documents';
 import { openapiRouter } from './routes/openapi';
 import { clashRouter } from "./routes/clash";
+import { mediaRouter } from './routes/media';
+import { analyticsRouter } from './routes/analytics';
+import { guestsRouter } from './routes/guests';
+import { episodesRouter } from './routes/episodes';
+import { researchRouter } from './routes/research';
+import { visitorLogs } from '../db/schema';
+import { drizzle } from 'drizzle-orm/d1';
 
 export type Bindings = Env;
 
@@ -35,6 +42,36 @@ const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 // Middleware
 app.use('*', cors());
 app.use('*', logger());
+
+// Visitor tracking middleware
+app.use('*', async (c, next) => {
+  // Skip tracking for API endpoints and static assets
+  if (c.req.path.startsWith('/api/') || c.req.path.includes('.')) {
+    return next();
+  }
+
+  // Track visitor asynchronously
+  c.executionCtx.waitUntil(
+    (async () => {
+      try {
+        const db = drizzle(c.env.DB);
+        const cf = c.req.raw.cf as any;
+
+        await db.insert(visitorLogs).values({
+          ipAddress: c.req.header('cf-connecting-ip') || c.req.header('x-real-ip') || 'unknown',
+          country: cf?.country || null,
+          city: cf?.city || null,
+          userAgent: c.req.header('user-agent') || null,
+          path: c.req.path,
+        });
+      } catch (err) {
+        console.error('Failed to log visitor:', err);
+      }
+    })()
+  );
+
+  return next();
+});
 
 // Health check
 app.get('/api/ping', (c) => c.json({ status: 'ok', timestamp: Date.now() }));
@@ -61,6 +98,11 @@ app.route('/api/notifications', notificationsRouter);
 app.route('/api/ai', aiRouter);
 app.route('/api/clash', clashRouter);
 app.route('/api/documents', documentsRouter);
+app.route('/api/media', mediaRouter);
+app.route('/api/analytics', analyticsRouter);
+app.route('/api/guests', guestsRouter);
+app.route('/api/episodes', episodesRouter);
+app.route('/api/research', researchRouter);
 app.route('/', openapiRouter);
 
 export { app };

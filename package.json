@@ -2,21 +2,22 @@
   "name": "cloudflare-edge-service",
   "version": "1.0.0",
   "private": true,
-   "scripts": {
-      "dev": "astro dev",
-      "build": "astro build",
-      "preview": "wrangler dev",
-      "start": "astro dev",
-      "fmt": "oxfmt",
-      "lint": "oxlint",
-      "check": "oxlint && oxfmt",
-      "db:generate": "drizzle-kit generate",
-      "migrate:local": "pnpm run db:generate && npx wrangler d1 migrations apply DB --local",
-      "migrate:remote": "pnpm run db:generate && npx wrangler d1 migrations apply DB --remote",
-      "deploy": "pnpm run build && cp .assetsignore dist/.assetsignore && pnpm run migrate:remote && npx wrangler deploy",
-      "cf-typegen": "wrangler types"
-    },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "wrangler dev",
+    "start": "astro dev",
+    "fmt": "oxfmt",
+    "lint": "oxlint",
+    "check": "oxlint && oxfmt",
+    "db:generate": "drizzle-kit generate && node -e \"const fs=require('fs');const p='./drizzle';fs.readdirSync(p).filter(f=>f.endsWith('.sql')).forEach(f=>{const fP=p+'/'+f;fs.writeFileSync(fP,fs.readFileSync(fP,'utf8').replace(/CREATE TABLE (?!IF NOT EXISTS)/g,'CREATE TABLE IF NOT EXISTS '));})\"",
+    "migrate:local": "pnpm run db:generate && npx wrangler d1 migrations apply DB --local",
+    "migrate:remote": "pnpm run db:generate && npx wrangler d1 migrations apply DB --remote",
+    "deploy": "pnpm run build && cp .assetsignore dist/.assetsignore && pnpm run migrate:remote && npx wrangler deploy dist/_worker.js/index.js",
+    "cf-typegen": "wrangler types"
+  },
   "dependencies": {
+    "@ai-sdk/openai": "^3.0.60",
     "@ai-sdk/react": "^3.0.170",
     "@assistant-ui/react": "^0.12.26",
     "@assistant-ui/react-ai-sdk": "^1.3.20",
@@ -58,6 +59,7 @@
     "drizzle-kit": "^0.31.10",
     "oxfmt": "^0.46.0",
     "oxlint": "^1.61.0",
+    "ts-node": "^10.9.2",
     "typescript": "^6.0.3",
     "wrangler": "^4.85.0"
   }

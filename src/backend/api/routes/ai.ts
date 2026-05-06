@@ -5,8 +5,14 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
+import { createOpenAI } from '@ai-sdk/openai';
+import { streamText, generateText } from 'ai';
 import { authMiddleware } from '../middleware/auth';
 import type { Bindings, Variables } from '../index';
+import { AGENTS, getAIGatewayBaseURL, getAiGatewayToken } from '../../ai/agents';
+import { drizzle } from 'drizzle-orm/d1';
+import { guests } from '../../db/schema';
+import { eq } from 'drizzle-orm';
 
 const aiRouter = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
@@ -34,15 +40,21 @@ const textToSpeechSchema = z.object({
 
 // POST /api/ai/chat
 aiRouter.post('/chat', zValidator('json', chatSchema), async (c) => {
-  const { messages, model = '@cf/openai/gpt-oss-120b' } = c.req.valid('json');
+  const { messages, model = 'workers-ai/@cf/openai/gpt-oss-120b' } = c.req.valid('json');
 
   try {
-    const response = await c.env.AI.run(model, {
-      messages,
-      stream: false,
+    const openai = createOpenAI({
+      apiKey: await getAiGatewayToken(c.env),
+      baseURL: await getAIGatewayBaseURL(c.env),
     });
 
-    return c.json(response);
+    const result = await generateText({
+      model: openai(model),
+      messages,
+      maxTokens: 4096,
+    });
+
+    return c.json({ response: result.text });
   } catch (error) {
     console.error('AI chat error:', error);
     return c.json({ error: 'AI chat failed' }, 500);
@@ -51,21 +63,23 @@ aiRouter.post('/chat', zValidator('json', chatSchema), async (c) => {
 
 // POST /api/ai/chat/stream
 aiRouter.post('/chat/stream', zValidator('json', chatSchema), async (c) => {
-  const { messages, model = '@cf/openai/gpt-oss-120b' } = c.req.valid('json');
-
+  const { messages } = c.req.valid('json');
+  const agent = AGENTS.investor;
+  
   try {
-    const stream = await c.env.AI.run(model, {
-      messages,
-      stream: true,
+    const openai = createOpenAI({
+      apiKey: await getAiGatewayToken(c.env),
+      baseURL: await getAIGatewayBaseURL(c.env),
     });
 
-    return new Response(stream, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-      },
+    const result = streamText({
+      model: openai(agent.model || 'workers-ai/@cf/openai/gpt-oss-120b'),
+      system: agent.systemPrompt,
+      messages,
+      maxSteps: 5,
     });
+
+    return result.toDataStreamResponse();
   } catch (error) {
     console.error('AI chat stream error:', error);
     return c.json({ error: 'AI chat stream failed' }, 500);
@@ -77,10 +91,9 @@ aiRouter.post('/speech-to-text', zValidator('json', speechToTextSchema), async (
   const { audio } = c.req.valid('json');
 
   try {
-    // Decode base64 audio
     const audioBuffer = Uint8Array.from(atob(audio), (c) => c.charCodeAt(0));
 
-    const response = await c.env.AI.run('@cf/openai/whisper', {
+    const response = await c.env.AI.run('@cf/openai/whisper-large-v3-turbo', {
       audio: Array.from(audioBuffer),
     });
 
@@ -96,12 +109,11 @@ aiRouter.post('/text-to-speech', zValidator('json', textToSpeechSchema), async (
   const { text, voice = 'alloy' } = c.req.valid('json');
 
   try {
-    const response = await c.env.AI.run('@cf/deepgram/aura-1', {
+    const response = await c.env.AI.run('@cf/deepgram/aura-2-en', {
       text,
       voice,
     });
 
-    // Return audio as base64
     if (response instanceof ReadableStream) {
       const reader = response.getReader();
       const chunks: Uint8Array[] = [];
@@ -136,7 +148,7 @@ aiRouter.post('/embeddings', zValidator('json', z.object({ text: z.string().min(
   const { text } = await c.req.json();
 
   try {
-    const response = await c.env.AI.run('@cf/baai/bge-base-en-v1.5', {
+    const response = await c.env.AI.run('@cf/baai/bge-large-en-v1.5', {
       text,
     });
 
@@ -144,6 +156,73 @@ aiRouter.post('/embeddings', zValidator('json', z.object({ text: z.string().min(
   } catch (error) {
     console.error('Embeddings error:', error);
     return c.json({ error: 'Embeddings generation failed' }, 500);
+  }
+});
+
+// GET /api/ai/insights/:id
+aiRouter.get('/insights/:id', async (c) => {
+  const id = parseInt(c.req.param('id'));
+
+  if (isNaN(id)) {
+    return c.json({ error: 'Invalid guest ID' }, 400);
+  }
+
+  try {
+    const db = drizzle(c.env.DB);
+    const result = await db.select().from(guests).where(eq(guests.id, id));
+
+    if (result.length === 0) {
+      return c.json({ error: 'Guest not found' }, 404);
+    }
+
+    const guest = result[0];
+
+    const parsedGuest = {
+      ...guest,
+      expertise: JSON.parse(guest.expertise),
+      chemistry: JSON.parse(guest.chemistry),
+      domain: JSON.parse(guest.domain),
+    };
+
+    const openai = createOpenAI({
+      apiKey: await getAiGatewayToken(c.env),
+      baseURL: await getAIGatewayBaseURL(c.env),
+    });
+
+    const prompt = `You are an expert podcast curator for "The Social Justice Investor" podcast, which explores the intersection of finance, AI ethics, and social justice.
+
+Generate a compelling 1-paragraph pitch (3-4 sentences) explaining why ${parsedGuest.name} would be an exceptional guest for the podcast.
+
+Guest Information:
+- Name: ${parsedGuest.name}
+- Background: ${parsedGuest.background}
+- Persona: ${parsedGuest.personaDescription}
+- Expertise: ${parsedGuest.expertise.join(', ')}
+- Tone: ${parsedGuest.tone}
+- Domain: ${parsedGuest.domain.join(', ')}
+- Chemistry: ${parsedGuest.chemistry.join(', ')}
+
+The pitch should highlight their unique perspective, how their work bridges finance and social justice, and what listeners would gain from hearing their story. Be specific and compelling.`;
+
+    const openaiResult = await generateText({
+      model: openai('workers-ai/@cf/openai/gpt-oss-120b'),
+      prompt,
+      maxTokens: 300,
+      temperature: 0.8,
+    });
+
+    const insight = openaiResult.text || 'No insight generated.';
+
+    return c.json({
+      guest: parsedGuest,
+      insight,
+    });
+  } catch (error) {
+    console.error('Insights generation error:', error);
+    return c.json({
+      error: 'Failed to generate guest insight',
+      details: error instanceof Error ? error.message : 'Unknown error',
+    }, 500);
   }
 });
 

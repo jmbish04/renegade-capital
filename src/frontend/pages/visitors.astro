@@ -1,0 +1,130 @@
+---
+/**
+ * @fileoverview Secret visitors analytics dashboard
+ *
+ * Displays recent visitor data from the visitor_logs table
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Visitor Analytics" description="Internal analytics dashboard">
+  <div class="container mx-auto px-4 py-12">
+    <h1 class="text-3xl font-bold text-foreground mb-8">Visitor Analytics</h1>
+
+    <div class="bg-muted/30 border border-border rounded-lg p-6">
+      <div class="mb-4 flex items-center justify-between">
+        <h2 class="text-xl font-semibold text-foreground">Recent Visitors</h2>
+        <span id="visitor-count" class="text-sm text-muted-foreground">
+          Loading visits...
+        </span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full border-collapse">
+          <thead>
+            <tr class="border-b border-border">
+              <th class="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
+                Time
+              </th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
+                Path
+              </th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
+                Location
+              </th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
+                IP Address
+              </th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
+                User Agent
+              </th>
+            </tr>
+          </thead>
+          <tbody id="visitors-table-body">
+            <tr>
+              <td colspan="5" class="text-center py-12 text-muted-foreground">
+                Loading visitor data...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mt-4 text-sm text-muted-foreground">
+      <p>
+        This is a secret analytics page.
+        Data is collected anonymously and used
+        only for understanding site usage patterns.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    async function fetchVisitors() {
+      const tbody = document.getElementById('visitors-table-body');
+      const countSpan = document.getElementById('visitor-count');
+      
+      if (!tbody || !countSpan) return;
+
+      try {
+        const response = await fetch('/api/analytics');
+        if (!response.ok) throw new Error('Failed to fetch');
+        
+        const data = await response.json();
+        const visitors = data.visitors || [];
+
+        countSpan.textContent = `Showing ${visitors.length} recent visits`;
+
+        if (visitors.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="5" class="text-center py-12 text-muted-foreground">
+                No visitor data available yet
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = visitors.map((visitor) => {
+          const date = new Date(visitor.createdAt * 1000).toLocaleString();
+          const location = [visitor.city, visitor.country].filter(Boolean).join(', ') || 'Unknown';
+
+          return `
+            <tr class="border-b border-border/50 hover:bg-muted/50 transition-colors">
+              <td class="px-4 py-3 text-sm text-muted-foreground whitespace-nowrap">
+                ${date}
+              </td>
+              <td class="px-4 py-3 text-sm text-foreground">
+                ${visitor.path}
+              </td>
+              <td class="px-4 py-3 text-sm text-muted-foreground">
+                ${location}
+              </td>
+              <td class="px-4 py-3 text-sm text-muted-foreground font-mono text-xs">
+                ${visitor.ipAddress}
+              </td>
+              <td class="px-4 py-3 text-sm text-muted-foreground max-w-md truncate">
+                ${visitor.userAgent || 'Unknown'}
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (error) {
+        console.error('Error fetching visitors:', error);
+        countSpan.textContent = 'Error loading visits';
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="text-center py-12 text-red-500">
+              Failed to load visitor data. Please try again later.
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    // Execute on load
+    fetchVisitors();
+  </script>
+</BaseLayout>

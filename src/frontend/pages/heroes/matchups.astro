@@ -1,0 +1,195 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { GuestCard } from "@/components/GuestCard";
+import { siteConfig } from "@/lib/config";
+
+// Enable SSR for this page to access the API at runtime
+export const prerender = false;
+
+// Fetch all guests exclusively from the new D1 API
+let guests = [];
+try {
+  const response = await fetch(new URL('/api/guests', Astro.url.origin));
+  const data = await response.json();
+  guests = data.guests || [];
+} catch (error) {
+  console.error('API Server unavailable. Failed to fetch D1 guests.', error);
+  guests = [];
+}
+
+// Generate compelling pairings based on complementary chemistry and domains
+const matchups = [];
+
+// Helper function to find complementary guests
+function findComplementaryGuest(targetGuest: any, allGuests: any[]) {
+  const scored = allGuests
+    .filter((g: any) => g.id !== targetGuest.id)
+    .map((guest: any) => {
+      let score = 0;
+
+      const chemistryOverlap = guest.chemistry.filter((c: string) =>
+        targetGuest.chemistry.includes(c)
+      ).length;
+      score += chemistryOverlap * 2;
+    
+      const domainOverlap = guest.domain.filter((d: string) =>
+        targetGuest.domain.includes(d)
+      ).length;
+      score += domainOverlap * 3;
+
+      const hasComplementaryDomain = guest.domain.some((d: string) =>
+        !targetGuest.domain.includes(d) &&
+        (targetGuest.domain.includes('AI Ethics') || targetGuest.domain.includes('Finance'))
+      );
+      if (hasComplementaryDomain) score += 1;
+
+      return { guest, score };
+    })
+    .filter((item: any) => item.score > 0)
+    .sort((a: any, b: any) => b.score - a.score);
+
+  return scored.length > 0 ? scored[0].guest : null;
+}
+
+// Create matchups for the first 4 guests
+for (let i = 0; i < Math.min(4, guests.length); i++) {
+  const targetGuest = guests[i];
+  const pairedGuest = findComplementaryGuest(targetGuest, guests);
+
+  if (pairedGuest) {
+    const sharedChemistry = targetGuest.chemistry.filter((c: string) =>
+      pairedGuest.chemistry.includes(c)
+    );
+
+    const sharedDomains = targetGuest.domain.filter((d: string) =>
+      pairedGuest.domain.includes(d)
+    );
+
+    matchups.push({
+      id: `matchup-${i + 1}`,
+      guest1: targetGuest,
+      guest2: pairedGuest,
+      sharedChemistry,
+      sharedDomains,
+      episodeTitle: `${sharedDomains[0] || 'Technology'} in Action: A Conversation`,
+    });
+  }
+}
+---
+
+<BaseLayout
+  title="Episode Matchups | Renegade Capital"
+  description="Curated guest pairings for compelling podcast episodes"
+>
+  <div class="container mx-auto px-4 py-12">
+    <div class="mb-12">
+      <a
+        href="/heroes"
+        class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        Back to Heroes
+      </a>
+
+      <h1 class="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+        Episode Matchups
+      </h1>
+      <p class="mt-4 text-lg text-muted-foreground max-w-3xl">
+        Curated guest pairings designed to create compelling conversations at the intersection of AI, finance, and social justice.
+      </p>
+    </div>
+
+    <div class="space-y-16">
+      {matchups.map((matchup: any, index: number) => (
+        <div key={matchup.id} class="relative">
+          <div class="mb-8">
+            <div class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-xs font-medium text-primary">
+              <span class="size-1.5 rounded-full bg-primary" aria-hidden="true"></span>
+              Episode {index + 1}
+            </div>
+            <h2 class="mt-4 text-2xl font-bold text-foreground">
+              {matchup.episodeTitle}
+            </h2>
+            {matchup.sharedDomains.length > 0 && (
+              <p class="mt-2 text-sm text-muted-foreground">
+                Shared Focus: <strong>{matchup.sharedDomains.join(', ')}</strong>
+              </p>
+            )}
+            {matchup.sharedChemistry.length > 0 && (
+              <p class="text-sm text-muted-foreground">
+                Chemistry: <strong>{matchup.sharedChemistry.join(', ')}</strong>
+              </p>
+            )}
+          </div>
+
+          <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+            <div class="flex flex-col">
+              <div class="mb-3 flex items-center gap-2">
+                <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                  1
+                </span>
+                <span class="text-sm font-medium text-muted-foreground">Guest One</span>
+              </div>
+              <GuestCard
+                name={matchup.guest1.name}
+                personaDescription={matchup.guest1.personaDescription}
+                domain={matchup.guest1.domain}
+                chemistry={matchup.guest1.chemistry}
+                headshotUrl={matchup.guest1.headshotUrl}
+                affiliation={matchup.guest1.affiliation}
+                client:load
+              />
+            </div>
+
+            <div class="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+              <div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 border-4 border-background">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </div>
+            </div>
+
+            <div class="flex flex-col">
+              <div class="mb-3 flex items-center gap-2">
+                <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                  2
+                </span>
+                <span class="text-sm font-medium text-muted-foreground">Guest Two</span>
+              </div>
+              <GuestCard
+                name={matchup.guest2.name}
+                personaDescription={matchup.guest2.personaDescription}
+                domain={matchup.guest2.domain}
+                chemistry={matchup.guest2.chemistry}
+                headshotUrl={matchup.guest2.headshotUrl}
+                affiliation={matchup.guest2.affiliation}
+                client:load
+              />
+            </div>
+          </div>
+
+          {index < matchups.length - 1 && (
+            <div class="mt-16 border-t border-border"></div>
+          )}
+        </div>
+      ))}
+    </div>
+
+    {matchups.length === 0 && (
+      <div class="flex flex-col items-center justify-center py-16 text-center">
+        <p class="text-lg text-muted-foreground">
+          No matchups available yet. Check back soon or verify your database connection.
+        </p>
+        <a
+          href="/heroes"
+          class="mt-6 inline-flex h-11 items-center justify-center rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground shadow transition-colors hover:bg-primary/90"
+        >
+          View All Guests
+        </a>
+      </div>
+    )}
+  </div>
+</BaseLayout>

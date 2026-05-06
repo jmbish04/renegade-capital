@@ -134,3 +134,88 @@ export const documents = sqliteTable("documents", {
     .notNull()
     .default(sql`(unixepoch())`),
 });
+
+/**
+ * Visitor logs table for analytics
+ */
+export const visitorLogs = sqliteTable("visitor_logs", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  ipAddress: text("ip_address"),
+  country: text("country"),
+  city: text("city"),
+  userAgent: text("user_agent"),
+  path: text("path").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+/**
+ * Podcast guests table for the Renegade Capital platform
+ */
+export const guests = sqliteTable("guests", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  personaDescription: text("persona_description").notNull(),
+  expertise: text("expertise").notNull(), // JSON array string
+  tone: text("tone").notNull(),
+  background: text("background").notNull(),
+  chemistry: text("chemistry").notNull(), // JSON array string
+  domain: text("domain").notNull(), // JSON array string
+  headshotUrl: text("headshot_url"),
+  affiliation: text("affiliation"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+/**
+ * Episodes table for the Renegade Capital platform
+ */
+export const episodes = sqliteTable("episodes", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+/**
+ * Episode notes table for contextual notes on podcast matchups
+ */
+export const episodeNotes = sqliteTable("episode_notes", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  episodeId: text("episode_id")
+    .notNull()
+    .references(() => episodes.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  isActive: integer("is_active", { mode: "boolean" })
+    .notNull()
+    .default(true),
+  replacedByNote: integer("replaced_by_note").references((): any => episodeNotes.id),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+/**
+ * Research table for the Renegade Capital platform
+ */
+export const research = sqliteTable("research", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  domain: text("domain").notNull(),
+  chemistry: text("chemistry").notNull(),
+  topic: text("topic").notNull(),
+  link: text("link").notNull(),
+  dateAdded: integer("date_added", { mode: "timestamp" }),
+  headshotUrl: text("headshot_url"),
+  affiliation: text("affiliation"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});

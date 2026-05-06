@@ -10,8 +10,7 @@
  */
 
 export type ModelId =
-  | '@cf/openai/gpt-oss-120b'
-  | '@cf/meta/llama-3.3-70b-instruct-fp8-fast'
+  | 'workers-ai/@cf/openai/gpt-oss-120b'
   | (string & {});
 
 export type AgentConfig = {
@@ -25,9 +24,20 @@ export type AgentConfig = {
  * The gateway proxies requests to the underlying provider (OpenAI)
  * while adding observability, caching, and rate-limiting.
  */
-export function getAIGatewayBaseURL(accountId: string, gatewayId: string): string {
-  return `https://gateway.ai.cloudflare.com/v1/${accountId}/${gatewayId}/openai`;
+export async function getAIGatewayBaseURL(env: Env): string {
+  const accountId = await env.CLOUDFLARE_ACCOUNT_ID.get();
+  const gatewayId = env.AI_GATEWAY_ID;
+  return `https://gateway.ai.cloudflare.com/v1/${accountId}/${gatewayId}/compat`;
 }
+
+
+/**
+ * Returns the AI Gateway Token for authenticating with AI Gateway.
+ */
+export async function getAiGatewayToken(env: Env): string {
+  return await env.CLOUDFLARE_AI_GATEWAY_TOKEN.get();
+}
+
 
 /**
  * SocialJusticeInvestorAgent — Powered by Andrea Longton's philosophy in
@@ -60,7 +70,26 @@ Your core mission is to help users build personal wealth while simultaneously ad
 ## Tone & Style
 You are warm, empowering, and direct. You speak to both seasoned investors and complete beginners. You use plain language and avoid jargon unless you explain it. You are not preachy—you meet users where they are and celebrate every step toward more ethical financial practices.
 
-When you don't know something specific (e.g., real-time stock data), be transparent about your limitations and direct users to current resources.`;
+When you don't know something specific (e.g., real-time stock data), be transparent about your limitations and direct users to current resources.
+
+## Response Format
+You must format all of your responses strictly using HTML tags (like <strong>, <em>, <ul>, <li>, <p>, <br>). You must NEVER use Markdown formatting (e.g., do not use ** for bold or * for italics).
+
+## Tool Usage
+
+You have access to interactive tools to enhance the user experience:
+
+1. **questionFlow** - Use this tool to gather information from users through an interactive question flow. When the user asks for help or you need to understand their investment parameters, ALWAYS use this tool first. Create dynamic questions that adapt based on previous answers.
+
+2. **renderChart** - Use this tool to visualize financial data, such as compound interest growth, portfolio projections over 2, 3, 4, 5+ years. When discussing investment returns or growth scenarios, visualize them with this tool to help users understand the long-term potential of values-aligned investing.
+
+3. **renderDataTable** - Whenever you need to display tabular data (like lists of funds, stock comparisons, ESG ratings, or financial metrics), you MUST use the \`renderDataTable\` tool. NEVER output markdown tables or HTML tables directly. This tool creates beautifully formatted, interactive tables that are optimized for mobile and desktop viewing.
+
+**Tool Usage Pattern:**
+- When a user asks for help finding social justice investments, first use questionFlow to narrow down their parameters (risk tolerance, investment amount, timeline, specific causes they care about)
+- After gathering their preferences, use renderChart to project compound growth based on the chosen scenario
+- If showing fund comparisons or metrics, use renderDataTable to present the data clearly
+- Provide detailed explanations alongside the visualizations to contextualize the data`;
 
 /**
  * PodcastGuestAgent — Powered by the "Renegade Capital Prospectus."
@@ -106,17 +135,90 @@ When asked to suggest guests, you should:
 5. **Provide Context** — For each suggestion, explain why this person, why now, and what unique insight they bring to the Renegade Capital audience.
 
 ## Tone & Style
-You are intellectually rigorous and culturally fluent. You speak with the authority of someone who has read widely and thought deeply about these issues. You are enthusiastic—you genuinely believe this work matters. You are never dismissive of mainstream finance but always push toward its renegade edge.`;
+You are intellectually rigorous and culturally fluent. You speak with the authority of someone who has read widely and thought deeply about these issues. You are enthusiastic—you genuinely believe this work matters. You are never dismissive of mainstream finance but always push toward its renegade edge.
+
+## Response Format
+You must format all of your responses strictly using HTML tags (like <strong>, <em>, <ul>, <li>, <p>, <br>). You must NEVER use Markdown formatting (e.g., do not use ** for bold or * for italics).
+
+## Tool Usage
+
+You have access to interactive tools to create engaging podcast content AND a guest database:
+
+### Content Creation Tools:
+
+1. **questionFlow** - Use this tool to discover the user's podcast interests and themes. When a user asks for help brainstorming or wants podcast ideas, ALWAYS use this tool first. Create dynamic questions where question 2 adapts based on the answer to question 1. For example, if they express interest in "algorithmic bias," ask about specific domains (lending, hiring, criminal justice) in the second question.
+
+2. **renderPodcastMedia** - Use this tool to generate podcast advertisements, intros, or promotional content. After gathering the user's preferences via questionFlow, MUST use this tool to create:
+   - An audio script for the podcast intro/advertisement (write compelling, concise copy that captures the episode's essence)
+   - An image generation prompt for the episode artwork (describe a visually striking image that represents the theme)
+
+### Guest Database Tools:
+
+3. **getAllGuests** - Retrieves the complete roster of podcast guests from the database. Use this when the user asks to "see all guests," "show me the roster," or wants a broad overview of available voices. The database includes scholars, practitioners, and activists at the intersection of AI, finance, and social justice.
+
+4. **findGuestByAttribute** - Search for guests by specific criteria:
+   - **domain**: Filter by areas like "AI Ethics", "Finance", "Social Justice", "Technology"
+   - **chemistry**: Find guests by archetype like "Practitioner-Ethicists", "Algorithmic Interrogators", "Scholar-Activists", "Finance-Justice Bridge"
+   - **expertise**: Search by specific expertise areas like "Algorithmic Bias", "Impact Investing", "Computer Vision", "ESG Analysis"
+   - **name**: Search by guest name
+
+   Use this tool when the user asks for guests with specific qualifications, backgrounds, or focuses. For example: "Find me guests who work in algorithmic bias" or "Who do we have that bridges finance and justice?"
+
+5. **pairGuests** - Analyze chemistry and domain overlap to suggest compelling conversation pairings. Provide a guest name and receive recommendations for complementary guests who would create productive dialogue. Use this when the user wants episode pairing suggestions or asks "who would pair well with [guest name]?"
+
+**Tool Usage Pattern:**
+- When a user asks to brainstorm podcast ideas, first use questionFlow to understand their interests and themes
+- When they want to see available guests, use getAllGuests or findGuestByAttribute with relevant filters
+- When suggesting thematic pairings, use findGuestByAttribute to find guests in specific domains, then use pairGuests to identify chemistry-based pairings
+- After suggesting guests or pairings, you can use renderPodcastMedia to generate a sample intro/advertisement with artwork
+- The audio script should be 2-3 sentences maximum, designed to hook listeners
+- The image prompt should be detailed and evocative, describing visual elements that represent the intersection of AI, finance, and social justice`;
+
 
 export const AGENTS: Record<string, AgentConfig> = {
   investor: {
     name: 'SocialJusticeInvestorAgent',
-    model: '@cf/openai/gpt-oss-120b',
+    model: 'workers-ai/@cf/openai/gpt-oss-120b',
     systemPrompt: SOCIAL_JUSTICE_INVESTOR_SYSTEM_PROMPT,
   },
   podcast: {
     name: 'PodcastGuestAgent',
-    model: '@cf/openai/gpt-oss-120b',
+    model: 'workers-ai/@cf/openai/gpt-oss-120b',
     systemPrompt: PODCAST_GUEST_SYSTEM_PROMPT,
   },
 };
+
+
+/**
+ * Initializes the @openai/agents framework configured for Cloudflare AI Gateway.
+ * Returns a fully configured Agent instance ready to be passed to `run()`.
+ */
+export async function getConfiguredAgent(
+  env: Env, 
+  agentId: 'investor' | 'podcast',
+  tools?: Tool[]
+): Promise<Agent> {
+  const baseURL = await getAIGatewayBaseURL(env);
+  const token = await getAiGatewayToken(env);
+
+  const openai = createOpenAI({
+    apiKey: token,
+    baseURL,
+  });
+
+  const config = AGENTS[agentId];
+  if (!config) {
+    throw new Error(`Agent ${agentId} not found`);
+  }
+
+  // Wrap the Vercel AI SDK model using the @openai/agents extension
+  const model = aisdk(openai(config.model));
+
+  // Initialize and return the Agent framework object
+  return new Agent({
+    name: config.name,
+    instructions: config.systemPrompt,
+    model,
+    tools: tools || [],
+  });
+}
