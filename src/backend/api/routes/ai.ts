@@ -43,7 +43,6 @@ aiRouter.post('/chat', zValidator('json', chatSchema), async (c) => {
   const { messages, model = 'workers-ai/@cf/openai/gpt-oss-120b' } = c.req.valid('json');
 
   try {
-
     const openai = createOpenAI({
       apiKey: await getAiGatewayToken(c.env),
       baseURL: await getAIGatewayBaseURL(c.env),
@@ -68,7 +67,6 @@ aiRouter.post('/chat/stream', zValidator('json', chatSchema), async (c) => {
   const agent = AGENTS.investor;
   
   try {
-
     const openai = createOpenAI({
       apiKey: await getAiGatewayToken(c.env),
       baseURL: await getAIGatewayBaseURL(c.env),
@@ -78,11 +76,6 @@ aiRouter.post('/chat/stream', zValidator('json', chatSchema), async (c) => {
       model: openai(agent.model || 'workers-ai/@cf/openai/gpt-oss-120b'),
       system: agent.systemPrompt,
       messages,
-      // tools: {
-      //   questionFlow: questionFlowTool,
-      //   renderChart: renderChartTool,
-      //   renderDataTable: renderDataTableTool,
-      // },
       maxSteps: 5,
     });
 
@@ -160,4 +153,77 @@ aiRouter.post('/embeddings', zValidator('json', z.object({ text: z.string().min(
     });
 
     return c.json(response);
+  } catch (error) {
+    console.error('Embeddings error:', error);
+    return c.json({ error: 'Embeddings generation failed' }, 500);
   }
+});
+
+// GET /api/ai/insights/:id
+aiRouter.get('/insights/:id', async (c) => {
+  const id = parseInt(c.req.param('id'));
+
+  if (isNaN(id)) {
+    return c.json({ error: 'Invalid guest ID' }, 400);
+  }
+
+  try {
+    const db = drizzle(c.env.DB);
+    const result = await db.select().from(guests).where(eq(guests.id, id));
+
+    if (result.length === 0) {
+      return c.json({ error: 'Guest not found' }, 404);
+    }
+
+    const guest = result[0];
+
+    const parsedGuest = {
+      ...guest,
+      expertise: JSON.parse(guest.expertise),
+      chemistry: JSON.parse(guest.chemistry),
+      domain: JSON.parse(guest.domain),
+    };
+
+    const openai = createOpenAI({
+      apiKey: await getAiGatewayToken(c.env),
+      baseURL: await getAIGatewayBaseURL(c.env),
+    });
+
+    const prompt = `You are an expert podcast curator for "The Social Justice Investor" podcast, which explores the intersection of finance, AI ethics, and social justice.
+
+Generate a compelling 1-paragraph pitch (3-4 sentences) explaining why ${parsedGuest.name} would be an exceptional guest for the podcast.
+
+Guest Information:
+- Name: ${parsedGuest.name}
+- Background: ${parsedGuest.background}
+- Persona: ${parsedGuest.personaDescription}
+- Expertise: ${parsedGuest.expertise.join(', ')}
+- Tone: ${parsedGuest.tone}
+- Domain: ${parsedGuest.domain.join(', ')}
+- Chemistry: ${parsedGuest.chemistry.join(', ')}
+
+The pitch should highlight their unique perspective, how their work bridges finance and social justice, and what listeners would gain from hearing their story. Be specific and compelling.`;
+
+    const openaiResult = await generateText({
+      model: openai('workers-ai/@cf/openai/gpt-oss-120b'),
+      prompt,
+      maxTokens: 300,
+      temperature: 0.8,
+    });
+
+    const insight = openaiResult.text || 'No insight generated.';
+
+    return c.json({
+      guest: parsedGuest,
+      insight,
+    });
+  } catch (error) {
+    console.error('Insights generation error:', error);
+    return c.json({
+      error: 'Failed to generate guest insight',
+      details: error instanceof Error ? error.message : 'Unknown error',
+    }, 500);
+  }
+});
+
+export { aiRouter };
