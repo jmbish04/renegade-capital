@@ -1,4 +1,4 @@
-/* 
+/*
 export const episodes = [
   {
     "id": "0efd56dc-9c2b-424a-be8b-c50edb283914",
@@ -169,7 +169,7 @@ export const research = [
     "link": "https://www.ajlunited.org",
     "date_added": 1760486400,
     "created_at": 1762017408196,
-    "headshot_url": null    
+    "headshot_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Joy_Buolamwini,_2018_(cropped).jpg"    
   },
   {
     "id": "25cafc25-5f19-440b-af38-a22d5f4f0082",
@@ -181,7 +181,7 @@ export const research = [
     "date_added": 1760572800,
     "created_at": 1762017408594,
     "affiliation": "Princeton University",
-    "headshot_url": "Hosted within press kit via https://www.ruhabenjamin.com/media"
+    "headshot_url": "https://aas.princeton.edu/sites/g/files/toruqf6426/files/styles/3x4_750w_1000h/public/2024-05/ruha-benjamin_courtesy-macarthur-foundation.jpg"
   },
   {
     "id": "94e5d92a-8e50-4e58-9f51-9c6b318dee86",
@@ -192,7 +192,7 @@ export const research = [
     "link": "https://www.dair-institute.org",
     "date_added": 1760745600,
     "created_at": 1762017409033,
-    "headshot_url": null    
+    "headshot_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Timnit_Gebru_2017.jpg"    
   },
   {
     "id": "b4732422-0084-4bb4-b666-105a9aff752a",
@@ -215,7 +215,7 @@ export const research = [
     "link": "https://mathbabe.org",
     "date_added": 1761091200,
     "created_at": 1762017409986,
-    "headshot_url": null
+    "headshot_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Cathy_O'Neil_at_Google_Cambridge.jpg"
   },
   {
     "id": "0dc6f6d9-0860-429f-9f95-d51b41322050",
@@ -226,7 +226,7 @@ export const research = [
     "link": "https://www.ajlunited.org",
     "date_added": 1760486400,
     "created_at": 1762017587222,
-    "headshot_url": null
+    "headshot_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Joy_Buolamwini,_2018_(cropped).jpg"
   },
   {
     "id": "18b51871-5a42-4337-bde8-bb5797d4bda8",
@@ -238,7 +238,7 @@ export const research = [
     "date_added": 1760572800,
     "created_at": 1762017587675,
     "affiliation": "Princeton University",
-    "headshot_url": "https://sites.uci.edu/forum/2020/01/03/ruha-benjamin-race-after-technology-feb-7-2020/"
+    "headshot_url": "https://aas.princeton.edu/sites/g/files/toruqf6426/files/styles/3x4_750w_1000h/public/2024-05/ruha-benjamin_courtesy-macarthur-foundation.jpg"
   },
   {
     "id": "882bd0a7-5e34-43f5-9044-3836fa8b029e",
@@ -249,7 +249,7 @@ export const research = [
     "link": "https://www.dair-institute.org",
     "date_added": 1760745600,
     "created_at": 1762017587960,
-    "headshot_url": null
+    "headshot_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Timnit_Gebru_2017.jpg"
   },
   {
     "id": "d76b3f65-1ffb-41ec-ae85-0dc41d2b9875",
@@ -272,7 +272,7 @@ export const research = [
     "link": "https://mathbabe.org",
     "date_added": 1761091200,
     "created_at": 1762017588695,
-    "headshot_url": null
+    "headshot_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Cathy_O'Neil_at_Google_Cambridge.jpg"
   },
   {
     "id": "9e3def0a-1c97-4ff1-971f-406e4b0ba266",
@@ -283,7 +283,7 @@ export const research = [
     "link": "https://www.ajlunited.org",
     "date_added": 1760486400,
     "created_at": 1762017722822,
-    "headshot_url": null
+    "headshot_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Joy_Buolamwini,_2018_(cropped).jpg"
   },
   {
     "id": "c21883a4-19cf-46f4-9307-f37155a7db89",
@@ -296,7 +296,7 @@ export const research = [
     "created_at": 1762017723240,
     "updated_at": NaN,
     "affiliation": "Princeton University",
-    "headshot_url": "https://sites.uci.edu/forum/2020/01/03/ruha-benjamin-race-after-technology-feb-7-2020/"
+    "headshot_url": "https://aas.princeton.edu/sites/g/files/toruqf6426/files/styles/3x4_750w_1000h/public/2024-05/ruha-benjamin_courtesy-macarthur-foundation.jpg"
   }
 ];
 
@@ -323,7 +323,7 @@ export const guests = [
     "created_at": 1762017826375,
     "is_book_contributor": 0,
     "affiliation": "Princeton University",
-    "headshot_url": "Hosted within press kit via https://www.ruhabenjamin.com/media"
+    "headshot_url": "https://aas.princeton.edu/sites/g/files/toruqf6426/files/styles/3x4_750w_1000h/public/2024-05/ruha-benjamin_courtesy-macarthur-foundation.jpg"
   },
   {
     "id": "31888dd1-ace9-4d4a-8078-8fc52e7b0956",
@@ -347,7 +347,7 @@ export const guests = [
     "created_at": 1762017827177,
     "is_book_contributor": 0,
     "affiliation": "New York University / UM-Flint",
-    "headshot_url": "https://news.umflint.edu/2024/03/19/nyu-professor-meredith-broussard-to-discuss-bias-in-technology-march-27/"
+    "headshot_url": "https://ui-avatars.com/api/?name=Meredith+Broussard&background=random&size=512&format=png"
   },
   {
     "id": "8a2dc201-5104-45a3-85e6-81f436c1c6be",
@@ -358,7 +358,7 @@ export const guests = [
     "background": "Audience: Policy Makers, Social Workers, Activists, Civil Liberties Advocates, General Audience. | Influence: Public Intellectual.",
     "created_at": 1762017827492,
     "is_book_contributor": 0,
-    "headshot_url": null
+    "headshot_url": "https://ui-avatars.com/api/?name=Virginia+Eubanks&background=random&size=512&format=png"
   },
   {
     "id": "be5d1e99-afc4-46e4-87ce-9df60bf69c7b",
@@ -381,7 +381,7 @@ export const guests = [
     "background": "Audience: Legal Professionals, Futurists, Civil Liberties Advocates, Tech Ethicists. | Influence: Public Intellectual.",
     "created_at": 1762017828236,
     "is_book_contributor": 0,
-    "headshot_url": null
+    "headshot_url": "https://ui-avatars.com/api/?name=Nita+Farahany&background=random&size=512&format=png"
   },
   {
     "id": "346a40a8-938b-4a46-92d8-216b7dd2ca61",
@@ -405,7 +405,7 @@ export const guests = [
     "created_at": 1762017828815,
     "is_book_contributor": 0,
     "affiliation": "University of Edinburgh",
-    "headshot_url": "https://www.audible.com/author/Shannon-Vallor/B01LY76PK2?srsltid=AfmBOoocI48wF1bsx948dGPYi1X872QEbQ2vxaU5yv8cuH7jAIkZoNSW"
+    "headshot_url": "https://ui-avatars.com/api/?name=Shannon+Vallor&background=random&size=512&format=png"
   },
   {
     "id": "2c9b6505-b524-41b7-8cc7-8bcffe33d3a1",
@@ -417,7 +417,7 @@ export const guests = [
     "created_at": 1762017829100,
     "is_book_contributor": 0,
     "affiliation": "MIT / Nobel Committee",
-    "headshot_url": "https://en.wikipedia.org/wiki/Daron_Acemoglu"
+    "headshot_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Daron_Acemoglu.jpg"
   },
   {
     "id": "e4674428-865a-4b61-84dd-8525b14cd969",
@@ -536,7 +536,7 @@ export const guests = [
     "created_at": 1762017832138,
     "is_book_contributor": 0,
     "affiliation": "Creative Capital Foundation",
-    "headshot_url": "Accessed via Cultured Mag feature https://www.culturedmag.com/article/2023/11/15/creative-capital-christine-kuan-nonprofit/"
+    "headshot_url": "https://ui-avatars.com/api/?name=Christine+Kuan&background=random&size=512&format=png"
   },
   {
     "id": "72315dca-dc6c-4287-afee-3b4068b08368",
@@ -548,7 +548,7 @@ export const guests = [
     "created_at": 1762017832524,
     "is_book_contributor": 0,
     "affiliation": "Cyborg Foundation",
-    "headshot_url": "Accessed via official portfolio https://www.cyborgarts.com/neil-harbisson"
+    "headshot_url": "https://ui-avatars.com/api/?name=Neil+Harbisson&background=random&size=512&format=png"
   },
   {
     "id": "e0c1a922-ff13-4ff1-af18-dc956527ef41",
@@ -560,7 +560,7 @@ export const guests = [
     "created_at": 1762017833015,
     "is_book_contributor": 0,
     "affiliation": "Worthmore / Common Future",
-    "headshot_url": "Accessed via consulting portal https://www.worthmore.co/"
+    "headshot_url": "https://ui-avatars.com/api/?name=Rodney+Foxworth&background=random&size=512&format=png"
   },
   {
     "id": "26736528-7073-46e3-84bb-ed1b7ddb71f6",
@@ -572,7 +572,7 @@ export const guests = [
     "created_at": 1762017833365,
     "is_book_contributor": 0,
     "affiliation": "Cornell Tech Urban Tech Hub",
-    "headshot_url": "Accessed via Cornell Tech directory https://urban.tech.cornell.edu/people/nneka-sobers/"
+    "headshot_url": "https://ui-avatars.com/api/?name=Nneka+Sobers&background=random&size=512&format=png"
   },
   {
     "id": "61ed7dad-a361-402c-814e-f0129157b734",
@@ -584,7 +584,7 @@ export const guests = [
     "created_at": 1762017833738,
     "is_book_contributor": 0,
     "affiliation": "KHARI Creative / 21 Dreams",
-    "headshot_url": "Accessed via professional profile https://ovou.com/kalonji"
+    "headshot_url": "https://ui-avatars.com/api/?name=Kalonji+Gilchrist&background=random&size=512&format=png"
   },
   {
     "id": "8f369f95-aa58-4c73-ab34-a63c8577050f",
@@ -596,7 +596,7 @@ export const guests = [
     "created_at": 1762017833989,
     "is_book_contributor": 0,
     "affiliation": "London Business School",
-    "headshot_url": "Accessed via Champions Speakers https://champions-speakers.co.uk/speaker-agent/lynda-gratton"
+    "headshot_url": "https://ui-avatars.com/api/?name=Lynda+Gratton&background=random&size=512&format=png"
   },
   {
     "id": "34a6cd16-1821-4277-9f27-fc18c4fab7ad",
@@ -607,7 +607,7 @@ export const guests = [
     "background": "Audience: Public Health Professionals, Labor Advocates, Sociologists, Government Researchers. | Influence: Niche Expert.",
     "created_at": 1762017834399,
     "is_book_contributor": 0,
-    "headshot_url": null    
+    "headshot_url": "https://ui-avatars.com/api/?name=Dr.+Caroline+Smith&background=random&size=512&format=png"    
   },
   {
     "id": "13e9a082-a3e6-4d4a-b533-405a3b46a0a4",
