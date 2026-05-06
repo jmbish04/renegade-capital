@@ -24,7 +24,7 @@ export type AgentConfig = {
  * The gateway proxies requests to the underlying provider (OpenAI)
  * while adding observability, caching, and rate-limiting.
  */
-export function getAIGatewayBaseURL(env: Env): string {
+export async function getAIGatewayBaseURL(env: Env): string {
   const accountId = await env.CLOUDFLARE_ACCOUNT_ID.get();
   const gatewayId = env.AI_GATEWAY_ID;
   return `https://gateway.ai.cloudflare.com/v1/${accountId}/${gatewayId}/compat`;
