@@ -2,16 +2,15 @@
  * @fileoverview Chat API routes for the Renegade Capital multi-agent platform.
  *
  * Provides streaming chat endpoints with tool support for the AI agents
- * defined in `../../ai/agents.ts`. Uses Vercel AI SDK streamText with
- * the official OpenAI SDK provider routed through Cloudflare AI Gateway.
+ * defined in `../../ai/agents.ts`. Uses the @openai/agents framework
+ * integrated via the AI Gateway compatible models.
  */
 
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import { streamText } from 'ai';
-import { createOpenAI } from '@ai-sdk/openai';
-import { AGENTS, getAIGatewayBaseURL } from '../../ai/agents';
+import { run, tool } from '@openai/agents';
+import { getConfiguredAgent } from '../../ai/agents';
 import type { Bindings } from '../index';
 import { drizzle } from 'drizzle-orm/d1';
 import { guests } from '../../db/schema';
@@ -33,7 +32,8 @@ const chatRequestSchema = z.object({
 /**
  * Tool definitions for the AI agents
  */
-const questionFlowTool = {
+const questionFlowTool = tool({
+  name: 'questionFlow',
   description: 'Present an interactive question flow to gather information from the user',
   parameters: z.object({
     steps: z.array(z.object({
@@ -43,14 +43,15 @@ const questionFlowTool = {
       options: z.array(z.string()).optional(),
     })),
   }),
-  execute: async ({ steps }: { steps: any[] }) => {
+  execute: async ({ steps }) => {
     // Tool execution happens on the client side
     // Return the configuration for rendering
     return { steps };
   },
-};
+});
 
-const renderChartTool = {
+const renderChartTool = tool({
+  name: 'renderChart',
   description: 'Render a line chart to visualize financial data over time',
   parameters: z.object({
     title: z.string().optional(),
@@ -62,12 +63,13 @@ const renderChartTool = {
       color: z.string().optional(),
     })),
   }),
-  execute: async ({ title, data, xKey, series }: any) => {
+  execute: async ({ title, data, xKey, series }) => {
     return { title, data, xKey, series };
   },
-};
+});
 
-const renderPodcastMediaTool = {
+const renderPodcastMediaTool = tool({
+  name: 'renderPodcastMedia',
   description: 'Generate podcast media (audio and artwork) from a script and image prompt',
   parameters: z.object({
     title: z.string(),
@@ -75,7 +77,7 @@ const renderPodcastMediaTool = {
     audioScript: z.string(),
     imagePrompt: z.string(),
   }),
-  execute: async ({ title, description, audioScript, imagePrompt }: any) => {
+  execute: async ({ title, description, audioScript, imagePrompt }) => {
     // Construct URLs to the media endpoints
     const audioUrl = `/api/media/audio?text=${encodeURIComponent(audioScript)}`;
     const artworkUrl = `/api/media/image?prompt=${encodeURIComponent(imagePrompt)}`;
@@ -87,9 +89,10 @@ const renderPodcastMediaTool = {
       artwork: artworkUrl,
     };
   },
-};
+});
 
-const renderDataTableTool = {
+const renderDataTableTool = tool({
+  name: 'renderDataTable',
   description: 'Render an interactive data table for displaying tabular information like fund comparisons, stock metrics, or financial data. Use this instead of markdown tables.',
   parameters: z.object({
     title: z.string().optional(),
@@ -100,20 +103,22 @@ const renderDataTableTool = {
     })),
     data: z.array(z.record(z.union([z.string(), z.number(), z.boolean()]))),
   }),
-  execute: async ({ title, columns, data }: any) => {
+  execute: async ({ title, columns, data }) => {
     return { title, columns, data };
   },
-};
+});
 
 /**
- * Guest tools for the Podcast Curator Agent
+ * Context-aware Guest tools for the Podcast Curator Agent
+ * Wrapped in factory functions to safely inject Cloudflare Env bindings
  */
-const getAllGuestsTool = {
+const createGetAllGuestsTool = (env: Bindings) => tool({
+  name: 'getAllGuests',
   description: 'Retrieve the complete roster of podcast guests from the database',
   parameters: z.object({}),
-  execute: async (_params: any, context: any) => {
+  execute: async () => {
     try {
-      const db = drizzle(context.env.DB);
+      const db = drizzle(env.DB);
       const allGuests = await db.select().from(guests);
 
       // Parse JSON fields
@@ -135,9 +140,10 @@ const getAllGuestsTool = {
       return { error: 'Failed to fetch guests', guests: [] };
     }
   },
-};
+});
 
-const findGuestByAttributeTool = {
+const createFindGuestByAttributeTool = (env: Bindings) => tool({
+  name: 'findGuestByAttribute',
   description: 'Search for guests by specific attributes like domain, chemistry, expertise, or name',
   parameters: z.object({
     name: z.string().optional(),
@@ -145,15 +151,15 @@ const findGuestByAttributeTool = {
     chemistry: z.string().optional(),
     expertise: z.string().optional(),
   }),
-  execute: async (params: any, context: any) => {
+  execute: async (params) => {
     try {
-      const db = drizzle(context.env.DB);
+      const db = drizzle(env.DB);
       let results = await db.select().from(guests);
 
       // Filter by name if provided
       if (params.name) {
         results = results.filter((guest) =>
-          guest.name.toLowerCase().includes(params.name.toLowerCase())
+          guest.name.toLowerCase().includes(params.name!.toLowerCase())
         );
       }
 
@@ -175,7 +181,7 @@ const findGuestByAttributeTool = {
       if (params.domain) {
         filteredResults = filteredResults.filter((guest) =>
           guest.domain.some((d: string) =>
-            d.toLowerCase().includes(params.domain.toLowerCase())
+            d.toLowerCase().includes(params.domain!.toLowerCase())
           )
         );
       }
@@ -184,7 +190,7 @@ const findGuestByAttributeTool = {
       if (params.chemistry) {
         filteredResults = filteredResults.filter((guest) =>
           guest.chemistry.some((c: string) =>
-            c.toLowerCase().includes(params.chemistry.toLowerCase())
+            c.toLowerCase().includes(params.chemistry!.toLowerCase())
           )
         );
       }
@@ -193,7 +199,7 @@ const findGuestByAttributeTool = {
       if (params.expertise) {
         filteredResults = filteredResults.filter((guest) =>
           guest.expertise.some((e: string) =>
-            e.toLowerCase().includes(params.expertise.toLowerCase())
+            e.toLowerCase().includes(params.expertise!.toLowerCase())
           )
         );
       }
@@ -204,17 +210,18 @@ const findGuestByAttributeTool = {
       return { error: 'Failed to search guests', guests: [] };
     }
   },
-};
+});
 
-const pairGuestsTool = {
+const createPairGuestsTool = (env: Bindings) => tool({
+  name: 'pairGuests',
   description: 'Find guests with complementary expertise or chemistry for episode pairings. Analyzes the chemistry and domain overlap to suggest compelling conversations.',
   parameters: z.object({
     guestName: z.string(),
     maxResults: z.number().optional(),
   }),
-  execute: async (params: any, context: any) => {
+  execute: async (params) => {
     try {
-      const db = drizzle(context.env.DB);
+      const db = drizzle(env.DB);
       const allGuests = await db.select().from(guests);
 
       // Parse JSON fields
@@ -283,7 +290,25 @@ const pairGuestsTool = {
       return { error: 'Failed to pair guests', pairings: [] };
     }
   },
-};
+});
+
+/**
+ * Creates a standard HTTP ReadableStream from the @openai/agents run output
+ */
+function createStandardTextStream(agentStream: any) {
+  return new ReadableStream({
+    async start(controller) {
+      try {
+        for await (const text of agentStream.toTextStream()) {
+          controller.enqueue(new TextEncoder().encode(text));
+        }
+        controller.close();
+      } catch (error) {
+        controller.error(error);
+      }
+    }
+  });
+}
 
 /**
  * POST /api/chat/investor
@@ -295,31 +320,24 @@ chatRouter.post(
   zValidator('json', chatRequestSchema),
   async (c) => {
     const { messages } = c.req.valid('json');
-    const agent = AGENTS.investor;
-    
-    // Crucial: Use CLOUDFLARE_API_TOKEN when calling workers-ai models via AI SDK
-    const aiApiKey = await c.env.CLOUDFLARE_AI_GATEWAY_TOKEN.get();
-
-    // Create OpenAI client with AI Gateway base URL
-    const openai = createOpenAI({
-      apiKey: aiApiKey,
-      baseURL: getAIGatewayBaseURL(c.env),
-    });
 
     try {
-      const result = streamText({
-        model: openai(agent.model),
-        system: agent.systemPrompt,
-        messages,
-        tools: {
-          questionFlow: questionFlowTool,
-          renderChart: renderChartTool,
-          renderDataTable: renderDataTableTool,
-        },
-        maxSteps: 5,
-      });
+      const agent = await getConfiguredAgent(c.env, 'investor', [
+        questionFlowTool,
+        renderChartTool,
+        renderDataTableTool,
+      ]);
 
-      return result.toDataStreamResponse();
+      const stream = await run(agent, messages as any, { stream: true });
+
+      return new Response(createStandardTextStream(stream), {
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8',
+          'Transfer-Encoding': 'chunked',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+        },
+      });
     } catch (error) {
       console.error('[chat/investor] Error:', error);
       return c.json({
@@ -340,49 +358,26 @@ chatRouter.post(
   zValidator('json', chatRequestSchema),
   async (c) => {
     const { messages } = c.req.valid('json');
-    const agent = AGENTS.podcast;
-
-    // Crucial: Use CLOUDFLARE_API_TOKEN when calling workers-ai models via AI SDK
-    const aiApiKey = await c.env.CLOUDFLARE_AI_GATEWAY_TOKEN.get();
-
-    // Create OpenAI client with AI Gateway base URL
-    const openai = createOpenAI({
-      apiKey: aiApiKey,
-      baseURL: getAIGatewayBaseURL(c.env),
-    });
-
-    // Create context-aware tool wrappers
-    const contextualGetAllGuests = {
-      ...getAllGuestsTool,
-      execute: async (params: any) => getAllGuestsTool.execute(params, { env: c.env }),
-    };
-
-    const contextualFindGuestByAttribute = {
-      ...findGuestByAttributeTool,
-      execute: async (params: any) => findGuestByAttributeTool.execute(params, { env: c.env }),
-    };
-
-    const contextualPairGuests = {
-      ...pairGuestsTool,
-      execute: async (params: any) => pairGuestsTool.execute(params, { env: c.env }),
-    };
 
     try {
-      const result = streamText({
-        model: openai(agent.model),
-        system: agent.systemPrompt,
-        messages,
-        tools: {
-          questionFlow: questionFlowTool,
-          renderPodcastMedia: renderPodcastMediaTool,
-          getAllGuests: contextualGetAllGuests,
-          findGuestByAttribute: contextualFindGuestByAttribute,
-          pairGuests: contextualPairGuests,
-        },
-        maxSteps: 5,
-      });
+      const agent = await getConfiguredAgent(c.env, 'podcast', [
+        questionFlowTool,
+        renderPodcastMediaTool,
+        createGetAllGuestsTool(c.env),
+        createFindGuestByAttributeTool(c.env),
+        createPairGuestsTool(c.env),
+      ]);
 
-      return result.toDataStreamResponse();
+      const stream = await run(agent, messages as any, { stream: true });
+
+      return new Response(createStandardTextStream(stream), {
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8',
+          'Transfer-Encoding': 'chunked',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+        },
+      });
     } catch (error) {
       console.error('[chat/podcast] Error:', error);
       return c.json({
