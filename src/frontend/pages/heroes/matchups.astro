@@ -3,6 +3,9 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import { GuestCard } from "@/components/GuestCard";
 import { siteConfig } from "@/lib/config";
 
+// Enable SSR for this page to access the API at runtime
+export const prerender = false;
+
 // Fetch all guests exclusively from the new D1 API
 let guests = [];
 try {

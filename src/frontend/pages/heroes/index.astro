@@ -2,23 +2,19 @@
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { GuestCard } from "@/components/GuestCard";
 import { siteConfig } from "@/lib/config";
-import { guests as fallbackGuests } from "@/backend/data";
 
-// Fetch guests from API, fallback to static data during build
+// Enable SSR for this page to access the API at runtime
+export const prerender = false;
+
+// Fetch all guests exclusively from the new D1 API
 let guests = [];
 try {
   const response = await fetch(new URL('/api/guests', Astro.url.origin));
   const data = await response.json();
   guests = data.guests || [];
 } catch (error) {
-  // During static build, API server isn't running - use fallback data
-  console.log('Using fallback guest data for static build');
-  guests = fallbackGuests.map((g: any) => ({
-    ...g,
-    expertise: typeof g.expertise === 'string' ? JSON.parse(g.expertise) : g.expertise,
-    chemistry: typeof g.tone === 'string' ? [g.tone] : (g.chemistry || []),
-    domain: typeof g.background === 'string' ? [g.background] : (g.domain || []),
-  }));
+  console.error('API Server unavailable. Failed to fetch D1 guests.', error);
+  guests = [];
 }
 ---
 
