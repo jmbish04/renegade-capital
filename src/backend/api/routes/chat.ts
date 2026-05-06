@@ -296,16 +296,14 @@ chatRouter.post(
   async (c) => {
     const { messages } = c.req.valid('json');
     const agent = AGENTS.investor;
-
-    // Get AI Gateway configuration from environment
-    const accountId = c.env.CLOUDFLARE_ACCOUNT_ID || '';
-    const gatewayId = c.env.AI_GATEWAY_ID || 'renegade-capital';
-    const openaiApiKey = c.env.OPENAI_API_KEY || '';
+    
+    // Crucial: Use CLOUDFLARE_API_TOKEN when calling workers-ai models via AI SDK
+    const aiApiKey = await c.env.CLOUDFLARE_AI_GATEWAY_TOKEN.get();
 
     // Create OpenAI client with AI Gateway base URL
     const openai = createOpenAI({
-      apiKey: openaiApiKey,
-      baseURL: getAIGatewayBaseURL(accountId, gatewayId),
+      apiKey: aiApiKey,
+      baseURL: getAIGatewayBaseURL(c.env),
     });
 
     try {
@@ -344,15 +342,13 @@ chatRouter.post(
     const { messages } = c.req.valid('json');
     const agent = AGENTS.podcast;
 
-    // Get AI Gateway configuration from environment
-    const accountId = c.env.CLOUDFLARE_ACCOUNT_ID || '';
-    const gatewayId = c.env.AI_GATEWAY_ID || 'renegade-capital';
-    const openaiApiKey = c.env.OPENAI_API_KEY || '';
+    // Crucial: Use CLOUDFLARE_API_TOKEN when calling workers-ai models via AI SDK
+    const aiApiKey = await c.env.CLOUDFLARE_AI_GATEWAY_TOKEN.get();
 
     // Create OpenAI client with AI Gateway base URL
     const openai = createOpenAI({
-      apiKey: openaiApiKey,
-      baseURL: getAIGatewayBaseURL(accountId, gatewayId),
+      apiKey: aiApiKey,
+      baseURL: getAIGatewayBaseURL(c.env),
     });
 
     // Create context-aware tool wrappers
