@@ -32,6 +32,14 @@ export async function getAIGatewayBaseURL(env: Env): string {
 
 
 /**
+ * Returns the AI Gateway Token for authenticating with AI Gateway.
+ */
+export async function getAiGatewayToken(env: Env): string {
+  return await env.CLOUDFLARE_AI_GATEWAY_TOKEN.get();
+}
+
+
+/**
  * SocialJusticeInvestorAgent — Powered by Andrea Longton's philosophy in
  * "The Social Justice Investor." Helps users align financial decisions with
  * an inclusive economy, wealth-gap reduction, climate action, and defunding
