@@ -1,6 +1,6 @@
 {
   "name": "renegade-capital",
-  // "main": "src/_worker.ts",
+  "main": "./dist/_worker.js/index.js",
   "compatibility_date": "2026-05-04",
   "compatibility_flags": ["nodejs_compat"],
   "upload_source_maps": true,
