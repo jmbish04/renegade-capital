@@ -187,3 +187,38 @@ export const AGENTS: Record<string, AgentConfig> = {
     systemPrompt: PODCAST_GUEST_SYSTEM_PROMPT,
   },
 };
+
+
+/**
+ * Initializes the @openai/agents framework configured for Cloudflare AI Gateway.
+ * Returns a fully configured Agent instance ready to be passed to `run()`.
+ */
+export async function getConfiguredAgent(
+  env: Env, 
+  agentId: 'investor' | 'podcast',
+  tools?: Tool[]
+): Promise<Agent> {
+  const baseURL = await getAIGatewayBaseURL(env);
+  const token = await getAiGatewayToken(env);
+
+  const openai = createOpenAI({
+    apiKey: token,
+    baseURL,
+  });
+
+  const config = AGENTS[agentId];
+  if (!config) {
+    throw new Error(`Agent ${agentId} not found`);
+  }
+
+  // Wrap the Vercel AI SDK model using the @openai/agents extension
+  const model = aisdk(openai(config.model));
+
+  // Initialize and return the Agent framework object
+  return new Agent({
+    name: config.name,
+    instructions: config.systemPrompt,
+    model,
+    tools: tools || [],
+  });
+}
