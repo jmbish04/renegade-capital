@@ -5,8 +5,11 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
+import { createOpenAI } from '@ai-sdk/openai';
+import { streamText, generateText } from 'ai';
 import { authMiddleware } from '../middleware/auth';
 import type { Bindings, Variables } from '../index';
+import { AGENTS, getAIGatewayBaseURL, getAiGatewayToken } from '../../ai/agents';
 import { drizzle } from 'drizzle-orm/d1';
 import { guests } from '../../db/schema';
 import { eq } from 'drizzle-orm';
@@ -37,16 +40,25 @@ const textToSpeechSchema = z.object({
 
 // POST /api/ai/chat
 aiRouter.post('/chat', zValidator('json', chatSchema), async (c) => {
-  const { messages, model = '@cf/openai/gpt-oss-120b' } = c.req.valid('json');
+  const { messages, model = 'workers-ai/@cf/openai/gpt-oss-120b' } = c.req.valid('json');
 
   try {
-    const response = await c.env.AI.run(model, {
-      messages,
-      stream: false,
-      max_tokens: 4096,
+    // Resolve AI Gateway Token (Handling potential async secret store binding)
+    const aiApiKey = await getAiGatewayToken(c.env);
+
+    // Create OpenAI client with AI Gateway base URL
+    const openai = createOpenAI({
+      apiKey: aiApiKey as string,
+      baseURL: getAIGatewayBaseURL(c.env),
     });
 
-    return c.json(response);
+    const result = await generateText({
+      model: openai(model),
+      messages,
+      maxTokens: 4096,
+    });
+
+    return c.json({ response: result.text });
   } catch (error) {
     console.error('AI chat error:', error);
     return c.json({ error: 'AI chat failed' }, 500);
@@ -55,22 +67,32 @@ aiRouter.post('/chat', zValidator('json', chatSchema), async (c) => {
 
 // POST /api/ai/chat/stream
 aiRouter.post('/chat/stream', zValidator('json', chatSchema), async (c) => {
-  const { messages, model = '@cf/openai/gpt-oss-120b' } = c.req.valid('json');
-
+  const { messages } = c.req.valid('json');
+  const agent = AGENTS.investor;
+  
   try {
-    const stream = await c.env.AI.run(model, {
-      messages,
-      stream: true,
-      max_tokens: 4096,
+    // Resolve AI Gateway Token
+    const aiApiKey = await getAiGatewayToken(c.env);
+
+    // Create OpenAI client with AI Gateway base URL
+    const openai = createOpenAI({
+      apiKey: aiApiKey as string,
+      baseURL: await getAIGatewayBaseURL(c.env),
     });
 
-    return new Response(stream, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-      },
+    const result = streamText({
+      model: openai(agent.model),
+      system: agent.systemPrompt,
+      messages,
+      // tools: {
+      //   questionFlow: questionFlowTool,
+      //   renderChart: renderChartTool,
+      //   renderDataTable: renderDataTableTool,
+      // },
+      maxSteps: 5,
     });
+
+    return result.toDataStreamResponse();
   } catch (error) {
     console.error('AI chat stream error:', error);
     return c.json({ error: 'AI chat stream failed' }, 500);
@@ -153,7 +175,7 @@ aiRouter.post('/embeddings', zValidator('json', z.object({ text: z.string().min(
 });
 
 // GET /api/ai/insights/:id
-// Fetches a guest by ID and generates a 1-paragraph pitch via OpenAI through AI Gateway
+// Fetches a guest by ID and generates a 1-paragraph pitch via AI Gateway using the AI SDK
 aiRouter.get('/insights/:id', async (c) => {
   const id = parseInt(c.req.param('id'));
 
@@ -180,14 +202,15 @@ aiRouter.get('/insights/:id', async (c) => {
       domain: JSON.parse(guest.domain),
     };
 
-    // Get AI Gateway configuration from environment variables
-    const accountId = c.env.CLOUDFLARE_ACCOUNT_ID || 'your-account-id';
-    const gatewayId = c.env.AI_GATEWAY_ID || 'renegade-capital';
+    // Resolve AI Gateway Token
+    const aiApiKey = await (c.env.AI_GATEWAY_TOKEN as any).get();
 
-    // Construct AI Gateway OpenAI-compatible URL
-    const aiGatewayBaseURL = `https://gateway.ai.cloudflare.com/v1/${accountId}/${gatewayId}/openai`;
+    // Create OpenAI client with AI Gateway base URL
+    const openai = createOpenAI({
+      apiKey: aiApiKey as string,
+      baseURL: await getAIGatewayBaseURL(c.env),
+    });
 
-    // Generate insight using OpenAI via AI Gateway
     const prompt = `You are an expert podcast curator for "The Social Justice Investor" podcast, which explores the intersection of finance, AI ethics, and social justice.
 
 Generate a compelling 1-paragraph pitch (3-4 sentences) explaining why ${parsedGuest.name} would be an exceptional guest for the podcast.
@@ -203,37 +226,15 @@ Guest Information:
 
 The pitch should highlight their unique perspective, how their work bridges finance and social justice, and what listeners would gain from hearing their story. Be specific and compelling.`;
 
-    // Use fetch to call OpenAI via AI Gateway
-    const openaiResponse = await fetch(`${aiGatewayBaseURL}/v1/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${c.env.OPENAI_API_KEY || ''}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4',
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        max_tokens: 300,
-        temperature: 0.8,
-      }),
+    // Generate insight using the AI SDK
+    const openaiResult = await generateText({
+      model: openai('workers-ai/@cf/openai/gpt-oss-120b'),
+      prompt,
+      maxTokens: 300,
+      temperature: 0.8,
     });
 
-    if (!openaiResponse.ok) {
-      const errorText = await openaiResponse.text();
-      console.error('OpenAI API error:', errorText);
-      return c.json({
-        error: 'Failed to generate insight',
-        details: errorText,
-      }, 500);
-    }
-
-    const openaiData: any = await openaiResponse.json();
-    const insight = openaiData.choices?.[0]?.message?.content || 'No insight generated.';
+    const insight = openaiResult.text || 'No insight generated.';
 
     return c.json({
       guest: parsedGuest,
