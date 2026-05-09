@@ -1,0 +1,13 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { PolicyAgentChat } from "@/components/PolicyAgentChat";
+---
+
+<BaseLayout
+  title="Policy Agent — Renegade Capital"
+  description="Analyze the Trump AI Action Plan and its implications for social justice. Get evidence-based threat assessments, advocacy strategies, and civil rights impact analysis from the Policy War Room Agent."
+>
+  <div class="flex flex-1 flex-col" style="height: calc(100svh - var(--header-height));">
+    <PolicyAgentChat client:only="react" />
+  </div>
+</BaseLayout>

@@ -6,6 +6,8 @@
 
 @import "@fontsource-variable/inter";
 
+@import "./charts.css";
+
 @custom-variant dark (&:is(.dark *));
 @custom-variant fixed (&:is(.layout-fixed *));
 

@@ -1,0 +1,13 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { InvestorAgentChat } from "@/components/InvestorAgentChat";
+---
+
+<BaseLayout
+  title="Investor Agent — Renegade Capital"
+  description="Build wealth while advancing social equity. Get AI-powered guidance on values-aligned investing, ESG screening, and ethical portfolio construction from the Social Justice Investor Agent."
+>
+  <div class="flex flex-1 flex-col" style="height: calc(100svh - var(--header-height));">
+    <InvestorAgentChat client:only="react" />
+  </div>
+</BaseLayout>

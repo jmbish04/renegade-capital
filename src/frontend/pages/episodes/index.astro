@@ -1,0 +1,60 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { EpisodeList } from "@/components/EpisodeList";
+import { VerticalVideoPlayer } from "@/components/VerticalVideoPlayer";
+---
+
+<BaseLayout
+  title="Episode Matchups | Renegade Capital"
+  description="Explore AI-curated podcast episodes at the intersection of AI, finance, and social justice."
+>
+  <main class="flex flex-1 flex-col">
+    <!-- Episode Directory Hero -->
+    <div class="container mx-auto px-4 pt-12 pb-8">
+      <a
+        href="/guests"
+        class="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-primary mb-6 transition-colors"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="mr-2"><path d="m15 18-6-6 6-6"></path></svg
+        >
+        Back to Heroes
+      </a>
+      <h1 class="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+        Episode Matchups
+      </h1>
+      <p class="mt-4 text-lg text-muted-foreground max-w-3xl">
+        Curated guest pairings designed to create compelling conversations at
+        the intersection of AI, finance, and social justice.
+      </p>
+    </div>
+
+    <!-- Premium Media Player -->
+    <div
+      class="w-full bg-black/50 backdrop-blur-sm border-y border-border mb-8 overflow-hidden"
+    >
+      <!-- <div class="container mx-auto max-w-5xl py-12 px-4 flex justify-center">
+        <VerticalVideoPlayer
+          client:only="react"
+          src={import.meta.env.INTRO_VIDEO_URL ||
+            "https://pub-434f7a70bfdd41a382e8631347f40764.r2.dev/media/IntroPodcastExplainer.mp4"}
+          className="shadow-[0_0_50px_-12px_rgba(var(--primary-rgb),0.3)]"
+        />
+      </div> -->
+    </div>
+
+    <!-- Episode List -->
+    <div class="container mx-auto px-4 pb-12">
+      <EpisodeList client:load />
+    </div>
+  </main>
+</BaseLayout>

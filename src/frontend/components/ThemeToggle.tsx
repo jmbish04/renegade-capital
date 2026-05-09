@@ -15,12 +15,19 @@ function getInitialTheme(): Theme {
 }
 
 export const ThemeToggle: React.FC = () => {
-  const [theme, setTheme] = React.useState<Theme>(getInitialTheme);
+  const [theme, setTheme] = React.useState<Theme>("light");
+  const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
+    setTheme(getInitialTheme());
+    setMounted(true);
+  }, []);
+
+  React.useEffect(() => {
+    if (!mounted) return;
     document.documentElement.classList.toggle("dark", theme === "dark");
     localStorage.setItem("theme", theme);
-  }, [theme]);
+  }, [theme, mounted]);
 
   React.useEffect(() => {
     const media = window.matchMedia("(prefers-color-scheme: dark)");
@@ -49,7 +56,7 @@ export const ThemeToggle: React.FC = () => {
       aria-label="Toggle theme"
       aria-pressed={isDark}
     >
-      {isDark ? <Moon className="size-5" /> : <Sun className="size-6" />}
+      {mounted && isDark ? <Moon className="size-5" /> : <Sun className="size-6" />}
       <span className="sr-only">Toggle theme</span>
     </Button>
   );

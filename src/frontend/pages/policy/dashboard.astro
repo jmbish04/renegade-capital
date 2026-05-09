@@ -1,0 +1,13 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { PolicyDashboard } from "../../components/PolicyDashboard";
+---
+
+<BaseLayout
+  title="Policy Dashboard | Renegade Capital"
+  description="Visualizing high-risk policy zones within the Trump AI Action Plan."
+>
+  <div className="max-w-[1400px] mx-auto p-6 md:p-10 pt-24">
+    <PolicyDashboard client:only="react" />
+  </div>
+</BaseLayout>

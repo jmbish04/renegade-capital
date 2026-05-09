@@ -4,14 +4,14 @@ import { GuestCard } from "@/components/GuestCard";
 import { siteConfig } from "@/lib/config";
 
 // Enable SSR for this page to access the API at runtime
-export const prerender = false;
+// No SSR needed in static mode
 
 // Fetch all guests exclusively from the new D1 API
 let guests = [];
 try {
   const response = await fetch(new URL('/api/guests', Astro.url.origin));
   const data = await response.json();
-  guests = data.guests || [];
+  guests = (data as any).guests || [];
 } catch (error) {
   console.error('API Server unavailable. Failed to fetch D1 guests.', error);
   guests = [];
@@ -104,7 +104,7 @@ for (let i = 0; i < Math.min(4, guests.length); i++) {
 
     <div class="space-y-16">
       {matchups.map((matchup: any, index: number) => (
-        <div key={matchup.id} class="relative">
+        <div class="relative">
           <div class="mb-8">
             <div class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-xs font-medium text-primary">
               <span class="size-1.5 rounded-full bg-primary" aria-hidden="true"></span>

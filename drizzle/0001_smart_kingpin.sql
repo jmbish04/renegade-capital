@@ -1,4 +1,4 @@
-CREATE TABLE `dashboard_metrics` (
+CREATE TABLE IF NOT EXISTS `dashboard_metrics` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`metric_name` text NOT NULL,
 	`metric_value` real NOT NULL,
@@ -7,7 +7,7 @@ CREATE TABLE `dashboard_metrics` (
 	`timestamp` integer DEFAULT (unixepoch()) NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `documents` (
+CREATE TABLE IF NOT EXISTS `documents` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`user_id` integer NOT NULL,
 	`title` text NOT NULL,
@@ -17,7 +17,7 @@ CREATE TABLE `documents` (
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE TABLE `health_checks` (
+CREATE TABLE IF NOT EXISTS `health_checks` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`service_name` text NOT NULL,
 	`status` text NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE `health_checks` (
 	`timestamp` integer DEFAULT (unixepoch()) NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `messages` (
+CREATE TABLE IF NOT EXISTS `messages` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`thread_id` integer NOT NULL,
 	`role` text NOT NULL,
@@ -36,7 +36,7 @@ CREATE TABLE `messages` (
 	FOREIGN KEY (`thread_id`) REFERENCES `threads`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE TABLE `notifications` (
+CREATE TABLE IF NOT EXISTS `notifications` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`user_id` integer NOT NULL,
 	`type` text NOT NULL,
@@ -47,7 +47,7 @@ CREATE TABLE `notifications` (
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE TABLE `sessions` (
+CREATE TABLE IF NOT EXISTS `sessions` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`user_id` integer NOT NULL,
 	`token` text NOT NULL,
@@ -56,7 +56,7 @@ CREATE TABLE `sessions` (
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE TABLE `threads` (
+CREATE TABLE IF NOT EXISTS `threads` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`user_id` integer NOT NULL,
 	`title` text NOT NULL,

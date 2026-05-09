@@ -19,3 +19,31 @@ pnpm-debug.log*
 
 # macOS-specific files
 .DS_Store
+
+# Local Wrangler state
+.wrangler/
+
+# Virtual environments
+.venv/
+scripts/.venv/
+scripts/.ragify_tmp/
+
+# Generated podcast audio (local)
+episode_*.mp3
+
+# Temp fix/debug scripts
+fix_*.py
+fix_*.js
+restore_*.ts
+scratch.ts
+test-*.ts
+test_*.py
+test_*.js
+update_*.py
+build_output.txt
+wrangler_dev.log
+openapi_local.json
+openapi_prod.json
+
+# Antigravity local
+.antigravity/

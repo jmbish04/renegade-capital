@@ -1,0 +1,1 @@
+ALTER TABLE `guests` ADD `is_book_contributor` integer DEFAULT false NOT NULL;

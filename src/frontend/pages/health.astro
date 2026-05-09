@@ -1,0 +1,13 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { HealthPage } from "@/components/HealthPage";
+---
+
+<BaseLayout
+  title="System Health | Renegade Capital"
+  description="Real-time health monitoring dashboard for all Renegade Capital subsystems."
+>
+  <main class="flex flex-1 flex-col bg-background min-h-screen">
+    <HealthPage client:load />
+  </main>
+</BaseLayout>

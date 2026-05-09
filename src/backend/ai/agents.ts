@@ -9,13 +9,22 @@
  *   finance, and social justice for the Renegade Capital series.
  */
 
-export type ModelId =
-  | 'workers-ai/@cf/openai/gpt-oss-120b'
-  | (string & {});
+import { z } from 'zod';
+import {
+  Agent,
+  run,
+  setTracingDisabled,
+  OpenAIChatCompletionsModel,
+  tool,
+} from '@openai/agents';
+import type { Tool } from '@openai/agents';
+//
+// import { createOpenAI } from '@ai-sdk/openai';
+import { OpenAI } from 'openai';
 
 export type AgentConfig = {
   name: string;
-  model: ModelId;
+  model: string;
   systemPrompt: string;
 };
 
@@ -24,7 +33,7 @@ export type AgentConfig = {
  * The gateway proxies requests to the underlying provider (OpenAI)
  * while adding observability, caching, and rate-limiting.
  */
-export async function getAIGatewayBaseURL(env: Env): string {
+export async function getAIGatewayBaseURL(env: Env): Promise<string> {
   const accountId = await env.CLOUDFLARE_ACCOUNT_ID.get();
   const gatewayId = env.AI_GATEWAY_ID;
   return `https://gateway.ai.cloudflare.com/v1/${accountId}/${gatewayId}/compat`;
@@ -34,7 +43,7 @@ export async function getAIGatewayBaseURL(env: Env): string {
 /**
  * Returns the AI Gateway Token for authenticating with AI Gateway.
  */
-export async function getAiGatewayToken(env: Env): string {
+export async function getAiGatewayToken(env: Env): Promise<string> {
   return await env.CLOUDFLARE_AI_GATEWAY_TOKEN.get();
 }
 
@@ -79,7 +88,7 @@ You must format all of your responses strictly using HTML tags (like <strong>, <
 
 You have access to interactive tools to enhance the user experience:
 
-1. **questionFlow** - Use this tool to gather information from users through an interactive question flow. When the user asks for help or you need to understand their investment parameters, ALWAYS use this tool first. Create dynamic questions that adapt based on previous answers.
+1. **questionFlow** - Use this tool to gather information from users through an interactive question flow. When the user asks for help or you need to understand their investment parameters, ALWAYS use this tool first. You MUST use the 'choice' type with predefined options whenever possible (e.g., for risk tolerance, time horizon, specific causes) to guide the user, rather than open-ended text inputs. Create dynamic questions that adapt based on previous answers.
 
 2. **renderChart** - Use this tool to visualize financial data, such as compound interest growth, portfolio projections over 2, 3, 4, 5+ years. When discussing investment returns or growth scenarios, visualize them with this tool to help users understand the long-term potential of values-aligned investing.
 
@@ -174,20 +183,50 @@ You have access to interactive tools to create engaging podcast content AND a gu
 - The audio script should be 2-3 sentences maximum, designed to hook listeners
 - The image prompt should be detailed and evocative, describing visual elements that represent the intersection of AI, finance, and social justice`;
 
+/**
+ * PolicyAnalystAgent — Analyzes the Trump administration's AI Action Plan
+ * through the lens of social justice investing and community organizing.
+ * Has access to Vectorize RAG tools, guest database, and episode backlog.
+ */
+const POLICY_ANALYST_SYSTEM_PROMPT = `You are the Renegade Capital AI Policy Analyst — a specialist in analyzing the Trump administration's "America's AI Action Plan" through the lens of social justice investing.
 
-export const AGENTS: Record<string, AgentConfig> = {
+Your expertise spans:
+- **Social Justice Finance**: How AI deregulation impacts marginalized communities and ethical investing
+- **Algorithmic Accountability**: Identifying risks of algorithmic redlining, bias amplification, and surveillance capitalism
+- **Community Organizing**: Connecting policy concerns to actionable strategies for social justice advocates
+- **Podcast Production**: Suggesting relevant guest experts and episode topics for the Renegade Capital podcast
+
+When answering:
+1. ALWAYS search the policy vectorize index first to ground your response in the actual document text
+2. Reference specific page numbers and direct quotes when possible
+3. Connect policy language to real-world social justice implications
+4. Suggest relevant podcast guests and episode ideas when appropriate
+5. Provide organizing strategies from both finance and technology perspectives
+
+You have access to tools that search the embedded policy document, look up guest experts, browse episodes, and explore the tag taxonomy. Use them proactively.
+
+## Response Format
+You must format all of your responses strictly using HTML tags (like <strong>, <em>, <ul>, <li>, <p>, <br>). You must NEVER use Markdown formatting (e.g., do not use ** for bold or * for italics).`;
+
+export function getAgentConfigs(env: Env): Record<string, AgentConfig> {
+return {
   investor: {
-    name: 'SocialJusticeInvestorAgent',
-    model: 'workers-ai/@cf/openai/gpt-oss-120b',
+    name: 'InvestorAgent',
+    model: `workers-ai/${env.AI_MODEL_CHAT}`,
     systemPrompt: SOCIAL_JUSTICE_INVESTOR_SYSTEM_PROMPT,
   },
   podcast: {
-    name: 'PodcastGuestAgent',
-    model: 'workers-ai/@cf/openai/gpt-oss-120b',
+    name: 'PodcastAgent',
+    model: `workers-ai/${env.AI_MODEL_CHAT}`,
     systemPrompt: PODCAST_GUEST_SYSTEM_PROMPT,
   },
+  policy: {
+    name: 'PolicyAgent',
+    model: `workers-ai/${env.AI_MODEL_CHAT}`,
+    systemPrompt: POLICY_ANALYST_SYSTEM_PROMPT,
+  },
 };
-
+}
 
 /**
  * Initializes the @openai/agents framework configured for Cloudflare AI Gateway.
@@ -195,30 +234,195 @@ export const AGENTS: Record<string, AgentConfig> = {
  */
 export async function getConfiguredAgent(
   env: Env, 
-  agentId: 'investor' | 'podcast',
+  agentId: 'investor' | 'podcast' | 'policy',
   tools?: Tool[]
 ): Promise<Agent> {
   const baseURL = await getAIGatewayBaseURL(env);
-  const token = await getAiGatewayToken(env);
+  const apiKey = await getAiGatewayToken(env);
+  const modelName = `workers-ai/${env.AI_MODEL_CHAT}`;
 
-  const openai = createOpenAI({
-    apiKey: token,
-    baseURL,
-  });
+  const client = new OpenAI({ apiKey, baseURL });
+  setTracingDisabled(true);
 
-  const config = AGENTS[agentId];
+  // Monkey-patch chat.completions.create to automatically inject max_tokens
+  // and sanitize the messages array for Cloudflare Workers AI strict schema.
+  // Also implements a fallback mechanism to kimi-k2.5 with UI notifications.
+  const originalCreate = client.chat.completions.create.bind(client.chat.completions);
+  (client.chat.completions as any).create = async (body: any, options?: any) => {
+    const sanitizeMessages = (messages: any[]) => {
+      return messages.map((msg: any) => {
+        let content = msg.content;
+        if (content === null || content === undefined) {
+          content = "";
+        } else if (Array.isArray(content)) {
+          content = content
+            .map((part: any) => (part.type === "text" ? part.text : ""))
+            .join("\n");
+        }
+        return { ...msg, content };
+      });
+    };
+
+    if (body.messages && Array.isArray(body.messages)) {
+      body.messages = sanitizeMessages(body.messages);
+    }
+
+    const primaryPayload = { ...body, max_completion_tokens: 8192, max_tokens: 8192 };
+
+    const executeWithFallback = async () => {
+      try {
+        const result = await originalCreate(primaryPayload, options);
+
+        if (body.stream) {
+          async function* wrappedStream() {
+            let hasContent = false;
+            let maxToolIndex = -1;
+            try {
+              for await (const chunk of result as any) {
+                if (chunk.choices?.[0]?.delta?.content || chunk.choices?.[0]?.delta?.tool_calls) {
+                  hasContent = true;
+                }
+                
+                // Track highest tool call index
+                const toolCalls = chunk.choices?.[0]?.delta?.tool_calls;
+                if (toolCalls && Array.isArray(toolCalls)) {
+                  for (const tc of toolCalls) {
+                    if (typeof tc.index === 'number' && tc.index > maxToolIndex) {
+                      maxToolIndex = tc.index;
+                    }
+                  }
+                }
+                
+                yield chunk;
+              }
+              if (!hasContent) {
+                throw new Error("Primary model returned an empty response.");
+              }
+            } catch (e) {
+              console.error("[AI] Primary model failed:", e);
+              
+              const nextToolIndex = maxToolIndex + 1;
+              
+              // Yield a tool call to notify the frontend
+              yield {
+                id: `chatcmpl-fallback-${Date.now()}`,
+                object: "chat.completion.chunk",
+                created: Math.floor(Date.now() / 1000),
+                model: body.model,
+                choices: [{
+                  index: 0,
+                  delta: {
+                    tool_calls: [{
+                      index: nextToolIndex,
+                      id: `call_fallback_${Date.now()}`,
+                      type: "function",
+                      function: {
+                        name: "systemNotification",
+                        arguments: JSON.stringify({ message: "Primary AI model failed. Falling back to kimi-k2.5..." })
+                      }
+                    }]
+                  }
+                }]
+              };
+
+              let fallbackMaxToolIndex = nextToolIndex;
+              try {
+                // Fallback to kimi-k2.5
+                const fallbackPayload = { ...primaryPayload, model: "workers-ai/@cf/moonshotai/kimi-k2.5" };
+                const fallbackResult = await originalCreate(fallbackPayload, options);
+                
+                let fallbackHasContent = false;
+                for await (const fallbackChunk of fallbackResult as any) {
+                  if (fallbackChunk.choices?.[0]?.delta?.content || fallbackChunk.choices?.[0]?.delta?.tool_calls) {
+                    fallbackHasContent = true;
+                  }
+                  
+                  const fToolCalls = fallbackChunk.choices?.[0]?.delta?.tool_calls;
+                  if (fToolCalls && Array.isArray(fToolCalls)) {
+                    for (const tc of fToolCalls) {
+                      if (typeof tc.index === 'number' && tc.index > fallbackMaxToolIndex) {
+                        fallbackMaxToolIndex = tc.index;
+                      }
+                    }
+                  }
+                  
+                  yield fallbackChunk;
+                }
+
+                if (!fallbackHasContent) {
+                  throw new Error("Fallback model returned an empty response.");
+                }
+              } catch (fallbackError) {
+                console.error("[AI] Fallback model failed:", fallbackError);
+                // Yield failure notification
+                yield {
+                  id: `chatcmpl-failure-${Date.now()}`,
+                  object: "chat.completion.chunk",
+                  created: Math.floor(Date.now() / 1000),
+                  model: "workers-ai/@cf/moonshotai/kimi-k2.5",
+                  choices: [{
+                    index: 0,
+                    delta: {
+                      tool_calls: [{
+                        index: fallbackMaxToolIndex + 1,
+                        id: `call_failure_${Date.now()}`,
+                        type: "function",
+                        function: {
+                          name: "systemNotification",
+                          arguments: JSON.stringify({ message: "All AI models failed to respond. Please try again.", isError: true })
+                        }
+                      }]
+                    }
+                  }]
+                };
+              }
+            }
+          }
+          return wrappedStream();
+        }
+
+        // Non-streaming fallback
+        if (!result.choices?.[0]?.message?.content && !result.choices?.[0]?.message?.tool_calls) {
+            throw new Error("Primary model returned an empty response.");
+        }
+        return result;
+
+      } catch (e) {
+        console.error("[AI] Primary model failed (non-streaming):", e);
+        if (!body.stream) {
+           const fallbackPayload = { ...primaryPayload, model: "workers-ai/@cf/moonshotai/kimi-k2.5" };
+           return originalCreate(fallbackPayload, options);
+        }
+        throw e;
+      }
+    };
+
+    return executeWithFallback();
+  };
+
+  const config = getAgentConfigs(env)[agentId];
   if (!config) {
     throw new Error(`Agent ${agentId} not found`);
   }
 
-  // Wrap the Vercel AI SDK model using the @openai/agents extension
-  const model = aisdk(openai(config.model));
+  const systemNotificationTool = tool({
+    name: "systemNotification",
+    description: "System tool to notify the user of model fallback or errors. DO NOT use this tool directly.",
+    parameters: z.object({
+      message: z.string(),
+      isError: z.boolean().optional(),
+    }),
+    execute: async () => {
+      // Returns a success message to the fallback LLM so it knows the context was transferred.
+      return { status: "System notification displayed to user." };
+    }
+  });
 
   // Initialize and return the Agent framework object
   return new Agent({
     name: config.name,
     instructions: config.systemPrompt,
-    model,
-    tools: tools || [],
+    model: new OpenAIChatCompletionsModel(client, modelName),
+    tools: [...(tools || []), systemNotificationTool],
   });
 }

@@ -3,15 +3,15 @@
   "compilerOptions": {
     "baseUrl": ".",
     "rootDir": ".",
-    "ignoreDeprecations": "6.0",
+    "ignoreDeprecations": "5.0",
     "types": [
       "@cloudflare/workers-types",
       "./worker-configuration.d.ts"
     ],
     "paths": {
-      "@/*": ["src/frontend/*", "src/backend/*"],
-      "@/backend/*": ["src/backend/*"]
+      "@/*": [ "src/frontend/*", "src/backend/*" ],
+      "@/backend/*": [ "src/backend/*" ]
     }
   },
-  "include": [".astro/types.d.ts", "src/**/*", "worker-configuration.d.ts", "scripts/**/*"]
+  "include": [ ".astro/types.d.ts", "src/**/*", "worker-configuration.d.ts", "scripts/**/*" ]
 }

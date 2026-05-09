@@ -2,8 +2,7 @@
  * @fileoverview Threads API routes for AI assistant conversations
  */
 
-import { Hono } from 'hono';
-import { zValidator } from '@hono/zod-validator';
+import { OpenAPIHono, createRoute } from '@hono/zod-openapi';
 import { z } from 'zod';
 import { drizzle } from 'drizzle-orm/d1';
 import { desc, eq } from 'drizzle-orm';
@@ -11,7 +10,7 @@ import { threads, messages } from '../../db/schema';
 import { authMiddleware } from '../middleware/auth';
 import type { Bindings, Variables } from '../index';
 
-const threadsRouter = new Hono<{ Bindings: Bindings; Variables: Variables }>();
+const threadsRouter = new OpenAPIHono<{ Bindings: Bindings; Variables: Variables }>();
 
 // Apply auth middleware
 threadsRouter.use('*', authMiddleware);
@@ -27,7 +26,31 @@ const createMessageSchema = z.object({
 });
 
 // GET /api/threads
-threadsRouter.get('/', async (c) => {
+const getThreadsRoute = createRoute({
+  method: 'get',
+  path: '/',
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            threads: z.array(z.any()),
+          }),
+        },
+      },
+      description: 'Get all threads for the user',
+    },
+    500: {
+      content: {
+        'application/json': { schema: z.object({ error: z.string() }) },
+      },
+      description: 'Failed to fetch threads',
+    },
+  },
+});
+
+// @ts-ignore
+threadsRouter.openapi(getThreadsRoute, async (c) => {
   const db = drizzle(c.env.DB);
   const userId = c.get('userId')!;
 
@@ -38,15 +61,47 @@ threadsRouter.get('/', async (c) => {
       .where(eq(threads.userId, userId))
       .orderBy(desc(threads.updatedAt));
 
-    return c.json({ threads: userThreads });
+    return c.json({ threads: userThreads } as any, 200);
   } catch (error) {
     console.error('Error fetching threads:', error);
-    return c.json({ error: 'Failed to fetch threads' }, 500);
+    return c.json({ error: 'Failed to fetch threads' } as any, 500);
   }
 });
 
 // POST /api/threads
-threadsRouter.post('/', zValidator('json', createThreadSchema), async (c) => {
+const createThreadRoute = createRoute({
+  method: 'post',
+  path: '/',
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: createThreadSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            thread: z.any(),
+          }),
+        },
+      },
+      description: 'Thread created',
+    },
+    500: {
+      content: {
+        'application/json': { schema: z.object({ error: z.string() }) },
+      },
+      description: 'Failed to create thread',
+    },
+  },
+});
+
+threadsRouter.openapi(createThreadRoute, async (c) => {
   const db = drizzle(c.env.DB);
   const userId = c.get('userId')!;
   const { title } = c.req.valid('json');
@@ -60,15 +115,53 @@ threadsRouter.post('/', zValidator('json', createThreadSchema), async (c) => {
       })
       .returning();
 
-    return c.json({ thread: result[0] }, 201);
+    return c.json({ thread: result[0] } as any, 201);
   } catch (error) {
     console.error('Error creating thread:', error);
-    return c.json({ error: 'Failed to create thread' }, 500);
+    return c.json({ error: 'Failed to create thread' } as any, 500);
   }
 });
 
 // GET /api/threads/:id
-threadsRouter.get('/:id', async (c) => {
+const getThreadByIdRoute = createRoute({
+  method: 'get',
+  path: '/{id}',
+  request: {
+    params: z.object({ id: z.string() }),
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            thread: z.any(),
+          }),
+        },
+      },
+      description: 'Get thread details',
+    },
+    403: {
+      content: {
+        'application/json': { schema: z.object({ error: z.string() }) },
+      },
+      description: 'Unauthorized',
+    },
+    404: {
+      content: {
+        'application/json': { schema: z.object({ error: z.string() }) },
+      },
+      description: 'Thread not found',
+    },
+    500: {
+      content: {
+        'application/json': { schema: z.object({ error: z.string() }) },
+      },
+      description: 'Failed to fetch thread',
+    },
+  },
+});
+
+threadsRouter.openapi(getThreadByIdRoute, async (c) => {
   const db = drizzle(c.env.DB);
   const userId = c.get('userId')!;
   const threadId = parseInt(c.req.param('id'));
@@ -81,24 +174,57 @@ threadsRouter.get('/:id', async (c) => {
       .limit(1);
 
     if (threadResult.length === 0) {
-      return c.json({ error: 'Thread not found' }, 404);
+      return c.json({ error: 'Thread not found' } as any, 404);
     }
 
     const thread = threadResult[0];
 
     if (thread.userId !== userId) {
-      return c.json({ error: 'Unauthorized' }, 403);
+      return c.json({ error: 'Unauthorized' } as any, 403);
     }
 
-    return c.json({ thread });
+    return c.json({ thread } as any, 200);
   } catch (error) {
     console.error('Error fetching thread:', error);
-    return c.json({ error: 'Failed to fetch thread' }, 500);
+    return c.json({ error: 'Failed to fetch thread' } as any, 500);
   }
 });
 
 // GET /api/threads/:id/messages
-threadsRouter.get('/:id/messages', async (c) => {
+const getThreadMessagesRoute = createRoute({
+  method: 'get',
+  path: '/{id}/messages',
+  request: {
+    params: z.object({ id: z.string() }),
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            messages: z.array(z.any()),
+          }),
+        },
+      },
+      description: 'Get thread messages',
+    },
+    404: {
+      content: {
+        'application/json': { schema: z.object({ error: z.string() }) },
+      },
+      description: 'Thread not found',
+    },
+    500: {
+      content: {
+        'application/json': { schema: z.object({ error: z.string() }) },
+      },
+      description: 'Failed to fetch messages',
+    },
+  },
+});
+
+// @ts-ignore
+threadsRouter.openapi(getThreadMessagesRoute, async (c) => {
   const db = drizzle(c.env.DB);
   const userId = c.get('userId')!;
   const threadId = parseInt(c.req.param('id'));
@@ -112,7 +238,7 @@ threadsRouter.get('/:id/messages', async (c) => {
       .limit(1);
 
     if (threadResult.length === 0 || threadResult[0].userId !== userId) {
-      return c.json({ error: 'Thread not found' }, 404);
+      return c.json({ error: 'Thread not found' } as any, 404);
     }
 
     const threadMessages = await db
@@ -121,18 +247,54 @@ threadsRouter.get('/:id/messages', async (c) => {
       .where(eq(messages.threadId, threadId))
       .orderBy(messages.createdAt);
 
-    return c.json({ messages: threadMessages });
+    return c.json({ messages: threadMessages } as any, 200);
   } catch (error) {
     console.error('Error fetching messages:', error);
-    return c.json({ error: 'Failed to fetch messages' }, 500);
+    return c.json({ error: 'Failed to fetch messages' } as any, 500);
   }
 });
 
 // POST /api/threads/:id/messages
-threadsRouter.post(
-  '/:id/messages',
-  zValidator('json', createMessageSchema),
-  async (c) => {
+const createMessageRoute = createRoute({
+  method: 'post',
+  path: '/{id}/messages',
+  request: {
+    params: z.object({ id: z.string() }),
+    body: {
+      content: {
+        'application/json': {
+          schema: createMessageSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            message: z.any(),
+          }),
+        },
+      },
+      description: 'Message created',
+    },
+    404: {
+      content: {
+        'application/json': { schema: z.object({ error: z.string() }) },
+      },
+      description: 'Thread not found',
+    },
+    500: {
+      content: {
+        'application/json': { schema: z.object({ error: z.string() }) },
+      },
+      description: 'Failed to create message',
+    },
+  },
+});
+
+threadsRouter.openapi(createMessageRoute, async (c) => {
     const db = drizzle(c.env.DB);
     const userId = c.get('userId')!;
     const threadId = parseInt(c.req.param('id'));
@@ -147,7 +309,7 @@ threadsRouter.post(
         .limit(1);
 
       if (threadResult.length === 0 || threadResult[0].userId !== userId) {
-        return c.json({ error: 'Thread not found' }, 404);
+        return c.json({ error: 'Thread not found' } as any, 404);
       }
 
       // Create message
@@ -167,16 +329,46 @@ threadsRouter.post(
         .set({ updatedAt: new Date() })
         .where(eq(threads.id, threadId));
 
-      return c.json({ message: result[0] }, 201);
+      return c.json({ message: result[0] } as any, 201);
     } catch (error) {
       console.error('Error creating message:', error);
-      return c.json({ error: 'Failed to create message' }, 500);
+      return c.json({ error: 'Failed to create message' } as any, 500);
     }
   }
 );
 
 // DELETE /api/threads/:id
-threadsRouter.delete('/:id', async (c) => {
+const deleteThreadRoute = createRoute({
+  method: 'delete',
+  path: '/{id}',
+  request: {
+    params: z.object({ id: z.string() }),
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({ message: z.string() }),
+        },
+      },
+      description: 'Thread deleted',
+    },
+    404: {
+      content: {
+        'application/json': { schema: z.object({ error: z.string() }) },
+      },
+      description: 'Thread not found',
+    },
+    500: {
+      content: {
+        'application/json': { schema: z.object({ error: z.string() }) },
+      },
+      description: 'Failed to delete thread',
+    },
+  },
+});
+
+threadsRouter.openapi(deleteThreadRoute, async (c) => {
   const db = drizzle(c.env.DB);
   const userId = c.get('userId')!;
   const threadId = parseInt(c.req.param('id'));
@@ -190,16 +382,16 @@ threadsRouter.delete('/:id', async (c) => {
       .limit(1);
 
     if (threadResult.length === 0 || threadResult[0].userId !== userId) {
-      return c.json({ error: 'Thread not found' }, 404);
+      return c.json({ error: 'Thread not found' } as any, 404);
     }
 
     // Delete thread (messages will cascade delete)
     await db.delete(threads).where(eq(threads.id, threadId));
 
-    return c.json({ message: 'Thread deleted successfully' });
+    return c.json({ message: 'Thread deleted successfully' } as any, 200);
   } catch (error) {
     console.error('Error deleting thread:', error);
-    return c.json({ error: 'Failed to delete thread' }, 500);
+    return c.json({ error: 'Failed to delete thread' } as any, 500);
   }
 });
 

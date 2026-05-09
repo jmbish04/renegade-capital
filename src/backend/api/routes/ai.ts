@@ -2,19 +2,19 @@
  * @fileoverview AI API routes for Workers AI integration via AI Gateway
  */
 
-import { Hono } from 'hono';
+import { OpenAPIHono, createRoute } from '@hono/zod-openapi';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { createOpenAI } from '@ai-sdk/openai';
 import { streamText, generateText } from 'ai';
-import { authMiddleware } from '../middleware/auth';
-import type { Bindings, Variables } from '../index';
-import { AGENTS, getAIGatewayBaseURL, getAiGatewayToken } from '../../ai/agents';
+import { authMiddleware } from '@/backend/api/middleware/auth';
+import type { Bindings, Variables } from '@/backend/api';
+import { getAgentConfigs, getAIGatewayBaseURL, getAiGatewayToken } from '@/backend/ai/agents';
 import { drizzle } from 'drizzle-orm/d1';
-import { guests } from '../../db/schema';
+import { guests } from '@/backend/db/schema';
 import { eq } from 'drizzle-orm';
 
-const aiRouter = new Hono<{ Bindings: Bindings; Variables: Variables }>();
+const aiRouter = new OpenAPIHono<{ Bindings: Bindings; Variables: Variables }>();
 
 // Apply auth middleware
 aiRouter.use('*', authMiddleware);
@@ -39,7 +39,35 @@ const textToSpeechSchema = z.object({
 });
 
 // POST /api/ai/chat
-aiRouter.post('/chat', zValidator('json', chatSchema), async (c) => {
+const chatRoute = createRoute({
+  method: 'post',
+  path: '/chat',
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: chatSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': { schema: z.object({ response: z.string() }) },
+      },
+      description: 'Chat response',
+    },
+    500: {
+      content: {
+        'application/json': { schema: z.object({ error: z.string() }) },
+      },
+      description: 'Chat failed',
+    },
+  },
+});
+
+aiRouter.openapi(chatRoute, async (c) => {
   const { messages, model = 'workers-ai/@cf/openai/gpt-oss-120b' } = c.req.valid('json');
 
   try {
@@ -51,20 +79,45 @@ aiRouter.post('/chat', zValidator('json', chatSchema), async (c) => {
     const result = await generateText({
       model: openai(model),
       messages,
-      maxTokens: 4096,
+      // maxTokens: 4096,
     });
 
-    return c.json({ response: result.text });
+    return c.json({ response: result.text } as any, 200);
   } catch (error) {
     console.error('AI chat error:', error);
-    return c.json({ error: 'AI chat failed' }, 500);
+    return c.json({ error: 'AI chat failed' } as any, 500);
   }
 });
 
 // POST /api/ai/chat/stream
-aiRouter.post('/chat/stream', zValidator('json', chatSchema), async (c) => {
+const chatStreamRoute = createRoute({
+  method: 'post',
+  path: '/chat/stream',
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: chatSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Streamed chat response',
+    },
+    500: {
+      content: {
+        'application/json': { schema: z.object({ error: z.string() }) },
+      },
+      description: 'Chat stream failed',
+    },
+  },
+});
+
+aiRouter.openapi(chatStreamRoute, async (c) => {
   const { messages } = c.req.valid('json');
-  const agent = AGENTS.investor;
+  const agent = getAgentConfigs(c.env).investor;
   
   try {
     const openai = createOpenAI({
@@ -76,18 +129,46 @@ aiRouter.post('/chat/stream', zValidator('json', chatSchema), async (c) => {
       model: openai(agent.model || 'workers-ai/@cf/openai/gpt-oss-120b'),
       system: agent.systemPrompt,
       messages,
-      maxSteps: 5,
+      // maxSteps: 5,
     });
 
-    return result.toDataStreamResponse();
+    return result.toTextStreamResponse();
   } catch (error) {
     console.error('AI chat stream error:', error);
-    return c.json({ error: 'AI chat stream failed' }, 500);
+    return c.json({ error: 'AI chat stream failed' } as any, 500);
   }
 });
 
 // POST /api/ai/speech-to-text
-aiRouter.post('/speech-to-text', zValidator('json', speechToTextSchema), async (c) => {
+const speechToTextRoute = createRoute({
+  method: 'post',
+  path: '/speech-to-text',
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: speechToTextSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': { schema: z.any() },
+      },
+      description: 'Transcription result',
+    },
+    500: {
+      content: {
+        'application/json': { schema: z.object({ error: z.string() }) },
+      },
+      description: 'Transcription failed',
+    },
+  },
+});
+
+aiRouter.openapi(speechToTextRoute, async (c) => {
   const { audio } = c.req.valid('json');
 
   try {
@@ -97,15 +178,43 @@ aiRouter.post('/speech-to-text', zValidator('json', speechToTextSchema), async (
       audio: Array.from(audioBuffer),
     });
 
-    return c.json(response);
+    return c.json(response as any, 200);
   } catch (error) {
     console.error('Speech-to-text error:', error);
-    return c.json({ error: 'Speech-to-text failed' }, 500);
+    return c.json({ error: 'Speech-to-text failed' } as any, 500);
   }
 });
 
 // POST /api/ai/text-to-speech
-aiRouter.post('/text-to-speech', zValidator('json', textToSpeechSchema), async (c) => {
+const textToSpeechRoute = createRoute({
+  method: 'post',
+  path: '/text-to-speech',
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: textToSpeechSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': { schema: z.any() },
+      },
+      description: 'Audio generated',
+    },
+    500: {
+      content: {
+        'application/json': { schema: z.object({ error: z.string() }) },
+      },
+      description: 'Text-to-speech failed',
+    },
+  },
+});
+
+aiRouter.openapi(textToSpeechRoute, async (c) => {
   const { text, voice = 'alloy' } = c.req.valid('json');
 
   try {
@@ -133,38 +242,105 @@ aiRouter.post('/text-to-speech', zValidator('json', textToSpeechSchema), async (
       }
 
       const base64Audio = btoa(String.fromCharCode(...audioData));
-      return c.json({ audio: base64Audio });
+      return c.json({ audio: base64Audio } as any, 200);
     }
 
-    return c.json(response);
+    return c.json(response as any, 200);
   } catch (error) {
     console.error('Text-to-speech error:', error);
-    return c.json({ error: 'Text-to-speech failed' }, 500);
+    return c.json({ error: 'Text-to-speech failed' } as any, 500);
   }
 });
 
 // POST /api/ai/embeddings
-aiRouter.post('/embeddings', zValidator('json', z.object({ text: z.string().min(1) })), async (c) => {
-  const { text } = await c.req.json();
+const embeddingsRoute = createRoute({
+  method: 'post',
+  path: '/embeddings',
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: z.object({ text: z.string().min(1) }),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': { schema: z.any() },
+      },
+      description: 'Embeddings generated',
+    },
+    500: {
+      content: {
+        'application/json': { schema: z.object({ error: z.string() }) },
+      },
+      description: 'Embeddings generation failed',
+    },
+  },
+});
+
+aiRouter.openapi(embeddingsRoute, async (c) => {
+  const { text } = c.req.valid('json');
 
   try {
     const response = await c.env.AI.run('@cf/baai/bge-large-en-v1.5', {
       text,
     });
 
-    return c.json(response);
+    return c.json(response as any, 200);
   } catch (error) {
     console.error('Embeddings error:', error);
-    return c.json({ error: 'Embeddings generation failed' }, 500);
+    return c.json({ error: 'Embeddings generation failed' } as any, 500);
   }
 });
 
 // GET /api/ai/insights/:id
-aiRouter.get('/insights/:id', async (c) => {
-  const id = parseInt(c.req.param('id'));
+const getInsightsRoute = createRoute({
+  method: 'get',
+  path: '/insights/{id}',
+  request: {
+    params: z.object({ id: z.string() }),
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            guest: z.any(),
+            insight: z.string(),
+          }),
+        },
+      },
+      description: 'Insights generated',
+    },
+    400: {
+      content: {
+        'application/json': { schema: z.object({ error: z.string() }) },
+      },
+      description: 'Invalid guest ID',
+    },
+    404: {
+      content: {
+        'application/json': { schema: z.object({ error: z.string() }) },
+      },
+      description: 'Guest not found',
+    },
+    500: {
+      content: {
+        'application/json': { schema: z.object({ error: z.string(), details: z.string() }) },
+      },
+      description: 'Insights generation failed',
+    },
+  },
+});
 
-  if (isNaN(id)) {
-    return c.json({ error: 'Invalid guest ID' }, 400);
+aiRouter.openapi(getInsightsRoute, async (c) => {
+  const id = c.req.param('id');
+
+  if (!id) {
+    return c.json({ error: 'Invalid guest ID' } as any, 400);
   }
 
   try {
@@ -172,7 +348,7 @@ aiRouter.get('/insights/:id', async (c) => {
     const result = await db.select().from(guests).where(eq(guests.id, id));
 
     if (result.length === 0) {
-      return c.json({ error: 'Guest not found' }, 404);
+      return c.json({ error: 'Guest not found' } as any, 404);
     }
 
     const guest = result[0];
@@ -207,7 +383,7 @@ The pitch should highlight their unique perspective, how their work bridges fina
     const openaiResult = await generateText({
       model: openai('workers-ai/@cf/openai/gpt-oss-120b'),
       prompt,
-      maxTokens: 300,
+      // maxTokens: 300,
       temperature: 0.8,
     });
 
@@ -216,13 +392,13 @@ The pitch should highlight their unique perspective, how their work bridges fina
     return c.json({
       guest: parsedGuest,
       insight,
-    });
+    } as any, 200);
   } catch (error) {
     console.error('Insights generation error:', error);
     return c.json({
       error: 'Failed to generate guest insight',
       details: error instanceof Error ? error.message : 'Unknown error',
-    }, 500);
+    } as any, 500);
   }
 });
 

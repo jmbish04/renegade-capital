@@ -1,0 +1,1 @@
+ALTER TABLE `guests` ADD `podcast_fit_rationale` text;

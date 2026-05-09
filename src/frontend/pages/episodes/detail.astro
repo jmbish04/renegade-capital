@@ -1,0 +1,13 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { EpisodeDetailIsland } from "@/components/EpisodeDetailIsland";
+---
+
+<BaseLayout
+  title="Episode Viewport | Renegade Capital"
+  description="Dive deep into the specific insights and matchups of this Renegade Capital podcast episode."
+>
+  <div class="flex flex-1 flex-col relative min-h-[calc(100svh-var(--header-height))]">
+    <EpisodeDetailIsland client:only="react" />
+  </div>
+</BaseLayout>

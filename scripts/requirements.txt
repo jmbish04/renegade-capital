@@ -1,0 +1,7 @@
+PyPDF2
+PyMuPDF
+requests
+pydantic
+markitdown
+pydub
+openai

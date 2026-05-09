@@ -1,0 +1,36 @@
+@layer base {
+  :root {
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    
+    --color-desktop: hsl(var(--chart-1));
+    --color-mobile: hsl(var(--chart-2));
+    
+    /* Policy Dimensions */
+    --color-racialEquity: hsl(var(--chart-1));
+    --color-economicJustice: hsl(var(--chart-2));
+    --color-algorithmicBias: hsl(var(--chart-3));
+    --color-laborRights: hsl(var(--chart-4));
+    --color-privacySurveillance: hsl(var(--chart-5));
+  }
+
+  .dark {
+    --chart-1: 0 100% 65%; /* Red (Threat/Urgent) */
+    --chart-2: 30 100% 55%; /* Orange (Warning) */
+    --chart-3: 200 100% 50%; /* Blue (Info/Tech) */
+    --chart-4: 280 80% 60%; /* Purple */
+    --chart-5: 160 70% 45%; /* Green (Financial) */
+    
+    --color-desktop: hsl(var(--chart-1));
+    --color-mobile: hsl(var(--chart-2));
+    
+    --color-racialEquity: hsl(var(--chart-1));
+    --color-economicJustice: hsl(var(--chart-2));
+    --color-algorithmicBias: hsl(var(--chart-3));
+    --color-laborRights: hsl(var(--chart-4));
+    --color-privacySurveillance: hsl(var(--chart-5));
+  }
+}

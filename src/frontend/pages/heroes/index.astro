@@ -1,156 +1,40 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { GuestCard } from "@/components/GuestCard";
-import { siteConfig } from "@/lib/config";
-
-// Enable SSR for this page to access the API at runtime
-export const prerender = false;
-
-// Fetch all guests exclusively from the new D1 API
-let guests = [];
-try {
-  const response = await fetch(new URL('/api/guests', Astro.url.origin));
-  const data = await response.json();
-  guests = data.guests || [];
-} catch (error) {
-  console.error('API Server unavailable. Failed to fetch D1 guests.', error);
-  guests = [];
-}
+import { GuestList } from "@/components/GuestList";
+import { Users } from "lucide-react";
 ---
 
 <BaseLayout
-  title="Heroes of Social Justice & AI | Renegade Capital"
-  description="Explore visionary guests at the intersection of AI, finance, and social justice"
+  title="AI Hero Gallery | Renegade Capital"
+  description="Meet the visionaries reshaping the future of finance, technology, and equity."
 >
-  <div class="container mx-auto px-4 py-12">
-    <div class="mb-12">
-      <h1 class="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-        Heroes of Social Justice & AI
-      </h1>
-      <p class="mt-4 text-lg text-muted-foreground max-w-3xl">
-        Meet the visionaries, scholars, and practitioners reshaping the future at the intersection of finance, technology, and equity.
-      </p>
-      <div class="mt-6">
-        <a
-          href="/heroes/matchups"
-          class="inline-flex h-11 items-center justify-center rounded-lg border border-border bg-background px-6 text-sm font-semibold text-foreground shadow-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          View Episode Matchups
-        </a>
-      </div>
+  <main class="flex-1 bg-zinc-950 px-6 py-12 md:px-12">
+    <div class="max-w-7xl mx-auto mb-16">
+       <div class="flex flex-col md:flex-row items-end justify-between gap-8">
+          <div class="max-w-xl">
+            <h2 class="text-xs font-black uppercase tracking-[0.3em] text-purple-600 mb-4 flex items-center gap-2">
+              <Users className="size-3 fill-purple-600" /> Human Intelligence
+            </h2>
+            <h3 class="text-3xl md:text-6xl font-bold text-white tracking-tight leading-none uppercase italic">
+              Hero Gallery
+            </h3>
+          </div>
+          <div class="flex flex-col items-end gap-4">
+            <p class="text-zinc-500 max-w-sm text-sm text-right">
+              The visionaries, scholars, and practitioners whose expertise powers the Renegade RAG engine.
+            </p>
+            <a
+              href="/heroes/matchups"
+              class="inline-flex h-11 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900 px-6 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-600"
+            >
+              View Episode Matchups
+            </a>
+          </div>
+       </div>
     </div>
 
-    <!-- 3x3 Scrollable Grid -->
-    <div class="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-3">
-      {guests.map((guest: any) => (
-        <div
-          key={guest.id}
-          class="guest-card-wrapper"
-          data-guest-id={guest.id}
-        >
-          <GuestCard
-            name={guest.name}
-            personaDescription={guest.personaDescription}
-            domain={guest.domain}
-            chemistry={guest.chemistry}
-            headshotUrl={guest.headshotUrl}
-            affiliation={guest.affiliation}
-            client:load
-          />
-        </div>
-      ))}
+    <div class="max-w-7xl mx-auto">
+      <GuestList client:load />
     </div>
-  </div>
-
-  <!-- Client-side Dialog Script -->
-  <script>
-    import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from '@/components/ui/dialog';
-    import { createRoot } from 'react-dom/client';
-    import * as React from 'react';
-
-    // Global state for dialog
-    let dialogRoot: any = null;
-    let dialogContainer: HTMLElement | null = null;
-
-    function showInsightDialog(guestId: number) {
-      // Create dialog container if it doesn't exist
-      if (!dialogContainer) {
-        dialogContainer = document.createElement('div');
-        dialogContainer.id = 'insight-dialog-root';
-        document.body.appendChild(dialogContainer);
-        dialogRoot = createRoot(dialogContainer);
-      }
-
-      // Fetch insight
-      fetch(`/api/ai/insights/${guestId}`)
-        .then(res => res.json())
-        .then(data => {
-          const guest = data.guest;
-          const insight = data.insight;
-
-          // Render Dialog
-          dialogRoot.render(
-            React.createElement(Dialog, {
-              defaultOpen: true,
-              onOpenChange: (open: boolean) => {
-                if (!open && dialogRoot) {
-                  dialogRoot.unmount();
-                  if (dialogContainer) {
-                    document.body.removeChild(dialogContainer);
-                    dialogContainer = null;
-                    dialogRoot = null;
-                  }
-                }
-              }
-            },
-              React.createElement(DialogContent, { className: 'max-w-2xl' },
-                React.createElement(DialogHeader, {},
-                  React.createElement(DialogTitle, {}, guest.name),
-                  React.createElement(DialogDescription, {}, guest.affiliation)
-                ),
-                React.createElement('div', { className: 'mt-4 space-y-4' },
-                  React.createElement('div', { className: 'flex items-start gap-4' },
-                    guest.headshotUrl && React.createElement('img', {
-                      src: guest.headshotUrl,
-                      alt: guest.name,
-                      className: 'h-20 w-20 rounded-full object-cover ring-2 ring-primary/20'
-                    }),
-                    React.createElement('div', { className: 'flex-1' },
-                      React.createElement('h3', { className: 'text-sm font-semibold text-foreground mb-2' }, 'Why they\'d be a great guest:'),
-                      React.createElement('p', { className: 'text-sm leading-relaxed text-muted-foreground' }, insight)
-                    )
-                  ),
-                  React.createElement('div', { className: 'border-t border-border pt-4' },
-                    React.createElement('p', { className: 'text-xs text-muted-foreground italic' }, guest.personaDescription)
-                  )
-                )
-              )
-            )
-          );
-        })
-        .catch(error => {
-          console.error('Failed to fetch insight:', error);
-          alert('Failed to load guest insight. Please try again.');
-        });
-    }
-
-    // Add click handlers to guest cards
-    document.addEventListener('DOMContentLoaded', () => {
-      const cardWrappers = document.querySelectorAll('.guest-card-wrapper');
-
-      cardWrappers.forEach(wrapper => {
-        const card = wrapper.querySelector('[data-slot="card"]');
-        const guestId = wrapper.getAttribute('data-guest-id');
-
-        if (card && guestId) {
-          card.addEventListener('click', () => {
-            showInsightDialog(parseInt(guestId));
-          });
-
-          // Add cursor pointer
-          (card as HTMLElement).style.cursor = 'pointer';
-        }
-      });
-    });
-  </script>
+  </main>
 </BaseLayout>

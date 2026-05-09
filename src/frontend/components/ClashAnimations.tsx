@@ -45,7 +45,7 @@ export default function ClashAnimations() {
   useEffect(() => {
     fetch('/api/clash')
       .then(res => res.json())
-      .then(setData)
+      .then(data => setData(data as ClashData))
       .catch(err => console.error("Failed to fetch clash data", err));
   }, []);
 

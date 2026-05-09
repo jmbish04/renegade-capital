@@ -1,0 +1,13 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { PodcastAgentChat } from "@/components/PodcastAgentChat";
+---
+
+<BaseLayout
+  title="Podcast Agent — Renegade Capital"
+  description="Curate visionary podcast guests at the intersection of AI, finance, and social justice. Get thematic pairings and narrative arcs from the Renegade Capital Podcast Curator Agent."
+>
+  <div class="flex flex-1 flex-col" style="height: calc(100svh - var(--header-height));">
+    <PodcastAgentChat client:only="react" />
+  </div>
+</BaseLayout>

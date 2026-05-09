@@ -1,4 +1,4 @@
-CREATE TABLE `users` (
+CREATE TABLE IF NOT EXISTS `users` (
 	`id` integer PRIMARY KEY NOT NULL,
 	`name` text NOT NULL
 );

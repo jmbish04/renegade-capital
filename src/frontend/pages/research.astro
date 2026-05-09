@@ -1,0 +1,23 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { ResearchList } from "@/components/ResearchList";
+---
+
+<BaseLayout
+  title="Research | Renegade Capital"
+  description="Explore the foundational research, scholars, and ideas shaping our podcast episodes"
+>
+  <main class="flex flex-1 flex-col">
+    <div class="container mx-auto px-4 py-12">
+      <div class="mb-12">
+        <h1 class="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+          Research &amp; Foundation
+        </h1>
+        <p class="mt-4 text-lg text-muted-foreground max-w-3xl">
+          Delve into the foundational research, critical scholarship, and thought leadership that inform our conversations on AI, finance, and social justice.
+        </p>
+      </div>
+      <ResearchList client:load />
+    </div>
+  </main>
+</BaseLayout>

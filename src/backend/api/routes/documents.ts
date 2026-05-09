@@ -2,16 +2,14 @@
  * @fileoverview Documents API routes for PlateJS integration
  */
 
-import { Hono } from 'hono';
-import { zValidator } from '@hono/zod-validator';
-import { z } from 'zod';
+import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { drizzle } from 'drizzle-orm/d1';
 import { desc, eq } from 'drizzle-orm';
 import { documents } from '../../db/schema';
 import { authMiddleware } from '../middleware/auth';
 import type { Bindings, Variables } from '../index';
 
-const documentsRouter = new Hono<{ Bindings: Bindings; Variables: Variables }>();
+const documentsRouter = new OpenAPIHono<{ Bindings: Bindings; Variables: Variables }>();
 
 // Apply auth middleware
 documentsRouter.use('*', authMiddleware);
@@ -21,8 +19,42 @@ const createDocumentSchema = z.object({
   content: z.string(), // JSON string of Slate nodes
 });
 
+const documentResponseSchema = z.object({
+  id: z.number(),
+  userId: z.number(),
+  title: z.string(),
+  content: z.string(),
+  createdAt: z.any(),
+  updatedAt: z.any(),
+});
+
 // GET /api/documents
-documentsRouter.get('/', async (c) => {
+const getDocumentsRoute = createRoute({
+  method: 'get',
+  path: '/',
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            documents: z.array(documentResponseSchema),
+          }),
+        },
+      },
+      description: 'List user documents',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: z.object({ error: z.string() }),
+        },
+      },
+      description: 'Failed to fetch documents',
+    },
+  },
+});
+
+documentsRouter.openapi(getDocumentsRoute, async (c) => {
   const db = drizzle(c.env.DB);
   const userId = c.get('userId')!;
 
@@ -33,15 +65,47 @@ documentsRouter.get('/', async (c) => {
       .where(eq(documents.userId, userId))
       .orderBy(desc(documents.updatedAt));
 
-    return c.json({ documents: userDocuments });
+    return c.json({ documents: userDocuments } as any, 200);
   } catch (error) {
     console.error('Error fetching documents:', error);
-    return c.json({ error: 'Failed to fetch documents' }, 500);
+    return c.json({ error: 'Failed to fetch documents' } as any, 500);
   }
 });
 
 // POST /api/documents
-documentsRouter.post('/', zValidator('json', createDocumentSchema), async (c) => {
+const createDocumentRoute = createRoute({
+  method: 'post',
+  path: '/',
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: createDocumentSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      content: {
+        'application/json': {
+          schema: z.object({ document: documentResponseSchema }),
+        },
+      },
+      description: 'Document created',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: z.object({ error: z.string() }),
+        },
+      },
+      description: 'Failed to create document',
+    },
+  },
+});
+
+documentsRouter.openapi(createDocumentRoute, async (c) => {
   const db = drizzle(c.env.DB);
   const userId = c.get('userId')!;
   const { title, content } = c.req.valid('json');
@@ -64,7 +128,49 @@ documentsRouter.post('/', zValidator('json', createDocumentSchema), async (c) =>
 });
 
 // GET /api/documents/:id
-documentsRouter.get('/:id', async (c) => {
+const getDocumentRoute = createRoute({
+  method: 'get',
+  path: '/{id}',
+  request: {
+    params: z.object({ id: z.string() }),
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({ document: documentResponseSchema }),
+        },
+      },
+      description: 'Get document',
+    },
+    403: {
+      content: {
+        'application/json': {
+          schema: z.object({ error: z.string() }),
+        },
+      },
+      description: 'Unauthorized',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: z.object({ error: z.string() }),
+        },
+      },
+      description: 'Document not found',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: z.object({ error: z.string() }),
+        },
+      },
+      description: 'Failed to fetch document',
+    },
+  },
+});
+
+documentsRouter.openapi(getDocumentRoute, async (c) => {
   const db = drizzle(c.env.DB);
   const userId = c.get('userId')!;
   const documentId = parseInt(c.req.param('id'));
@@ -86,7 +192,7 @@ documentsRouter.get('/:id', async (c) => {
       return c.json({ error: 'Unauthorized' }, 403);
     }
 
-    return c.json({ document });
+    return c.json({ document } as any, 200);
   } catch (error) {
     console.error('Error fetching document:', error);
     return c.json({ error: 'Failed to fetch document' }, 500);
@@ -94,7 +200,46 @@ documentsRouter.get('/:id', async (c) => {
 });
 
 // PUT /api/documents/:id
-documentsRouter.put('/:id', zValidator('json', createDocumentSchema), async (c) => {
+const updateDocumentRoute = createRoute({
+  method: 'put',
+  path: '/{id}',
+  request: {
+    params: z.object({ id: z.string() }),
+    body: {
+      content: {
+        'application/json': { schema: createDocumentSchema },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({ document: documentResponseSchema }),
+        },
+      },
+      description: 'Update document',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: z.object({ error: z.string() }),
+        },
+      },
+      description: 'Document not found',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: z.object({ error: z.string() }),
+        },
+      },
+      description: 'Failed to update document',
+    },
+  },
+});
+
+documentsRouter.openapi(updateDocumentRoute, async (c) => {
   const db = drizzle(c.env.DB);
   const userId = c.get('userId')!;
   const documentId = parseInt(c.req.param('id'));
@@ -123,15 +268,49 @@ documentsRouter.put('/:id', zValidator('json', createDocumentSchema), async (c) 
       .where(eq(documents.id, documentId))
       .returning();
 
-    return c.json({ document: result[0] });
+    return c.json({ document: result[0] } as any, 200);
   } catch (error) {
     console.error('Error updating document:', error);
-    return c.json({ error: 'Failed to update document' }, 500);
+    return c.json({ error: 'Failed to update document' } as any, 500);
   }
 });
 
 // DELETE /api/documents/:id
-documentsRouter.delete('/:id', async (c) => {
+const deleteDocumentRoute = createRoute({
+  method: 'delete',
+  path: '/{id}',
+  request: {
+    params: z.object({ id: z.string() }),
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({ message: z.string() }),
+        },
+      },
+      description: 'Delete document',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: z.object({ error: z.string() }),
+        },
+      },
+      description: 'Document not found',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: z.object({ error: z.string() }),
+        },
+      },
+      description: 'Failed to delete document',
+    },
+  },
+});
+
+documentsRouter.openapi(deleteDocumentRoute, async (c) => {
   const db = drizzle(c.env.DB);
   const userId = c.get('userId')!;
   const documentId = parseInt(c.req.param('id'));
@@ -150,10 +329,10 @@ documentsRouter.delete('/:id', async (c) => {
 
     await db.delete(documents).where(eq(documents.id, documentId));
 
-    return c.json({ message: 'Document deleted successfully' });
+    return c.json({ message: 'Document deleted successfully' } as any, 200);
   } catch (error) {
     console.error('Error deleting document:', error);
-    return c.json({ error: 'Failed to delete document' }, 500);
+    return c.json({ error: 'Failed to delete document' } as any, 500);
   }
 });
 

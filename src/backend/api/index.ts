@@ -4,7 +4,7 @@
  * This file sets up the main Hono application with all API routes and middleware.
  */
 
-import { Hono } from 'hono';
+import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 // import type { D1Database, Ai } from '@cloudflare/workers-types';
@@ -13,16 +13,16 @@ import { chatRouter } from './routes/chat';
 import { dashboardRouter } from './routes/dashboard';
 import { threadsRouter } from './routes/threads';
 import { healthRouter } from './routes/health';
-import { notificationsRouter } from './routes/notifications';
 import { aiRouter } from './routes/ai';
-import { documentsRouter } from './routes/documents';
-import { openapiRouter } from './routes/openapi';
+
 import { clashRouter } from "./routes/clash";
 import { mediaRouter } from './routes/media';
 import { analyticsRouter } from './routes/analytics';
 import { guestsRouter } from './routes/guests';
 import { episodesRouter } from './routes/episodes';
 import { researchRouter } from './routes/research';
+import { policyRouter } from './routes/policy';
+import { vectorizeRouter } from './routes/vectorize';
 import { visitorLogs } from '../db/schema';
 import { drizzle } from 'drizzle-orm/d1';
 
@@ -37,11 +37,11 @@ export type Variables = {
   };
 };
 
-const app = new Hono<{ Bindings: Env; Variables: Variables }>();
+const app = new OpenAPIHono<{ Bindings: Env; Variables: Variables }>();
 
 // Middleware
-app.use('*', cors());
-app.use('*', logger());
+app.use('*', cors() as any);
+app.use('*', logger() as any);
 
 // Visitor tracking middleware
 app.use('*', async (c, next) => {
@@ -73,11 +73,49 @@ app.use('*', async (c, next) => {
   return next();
 });
 
-// Health check
-app.get('/api/ping', (c) => c.json({ status: 'ok', timestamp: Date.now() }));
+// Health check route definition
+const pingRoute = createRoute({
+  method: 'get',
+  path: '/api/ping',
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            status: z.string(),
+            timestamp: z.number(),
+          }),
+        },
+      },
+      description: 'API liveness ping',
+    },
+  },
+});
 
-// Context endpoint — returns platform metadata for AI Gateway context headers
-app.get('/context', (c) =>
+app.openapi(pingRoute, (c) => c.json({ status: 'ok', timestamp: Date.now() }));
+
+// Context endpoint route definition
+const contextRoute = createRoute({
+  method: 'get',
+  path: '/context',
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            platform: z.string(),
+            version: z.string(),
+            agents: z.array(z.string()),
+            description: z.string(),
+          }),
+        },
+      },
+      description: 'Platform context',
+    },
+  },
+});
+
+app.openapi(contextRoute, (c) =>
   c.json({
     platform: 'Renegade Capital',
     version: '1.0.0',
@@ -92,17 +130,19 @@ app.route('/api/chat', chatRouter);
 app.route('/api/auth', authRouter);
 app.route('/api/dashboard', dashboardRouter);
 app.route('/api/threads', threadsRouter);
-app.route('/health', healthRouter);
 app.route('/api/health', healthRouter);
-app.route('/api/notifications', notificationsRouter);
 app.route('/api/ai', aiRouter);
 app.route('/api/clash', clashRouter);
-app.route('/api/documents', documentsRouter);
 app.route('/api/media', mediaRouter);
 app.route('/api/analytics', analyticsRouter);
 app.route('/api/guests', guestsRouter);
 app.route('/api/episodes', episodesRouter);
 app.route('/api/research', researchRouter);
-app.route('/', openapiRouter);
+app.route('/api/policy', policyRouter);
+app.route('/api/vectorize', vectorizeRouter);
+import { setupOpenAPI } from './routes/openapi';
+
+// Set up dynamic OpenAPI JSON, Swagger UI, and Scalar UI
+setupOpenAPI(app);
 
 export { app };

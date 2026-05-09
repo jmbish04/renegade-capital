@@ -1,0 +1,9 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { PolicyReviewIsland } from "../../components/PolicyReviewIsland";
+---
+
+<BaseLayout title="Policy Review | Renegade Capital">
+  <!-- Provide full screen height without margins for the Island -->
+  <PolicyReviewIsland client:only="react" />
+</BaseLayout>

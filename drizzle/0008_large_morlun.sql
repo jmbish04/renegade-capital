@@ -1,0 +1,1 @@
+ALTER TABLE `trump_policy_page` ADD `transcript` text;

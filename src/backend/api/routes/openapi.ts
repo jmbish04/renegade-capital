@@ -1,169 +1,80 @@
 /**
- * @fileoverview OpenAPI documentation routes
+ * @fileoverview OpenAPI documentation routes — dynamic spec generation
+ *
+ * Generates /openapi.json dynamically from registered OpenAPIHono routes,
+ * and seamlessly injects Cloudflare Agents SDK Durable Object endpoints.
+ * Serves Swagger UI at /swagger and Scalar at /scalar.
  */
 
-import { Hono } from 'hono';
+import { OpenAPIHono } from '@hono/zod-openapi';
 import { swaggerUI } from '@hono/swagger-ui';
 import { apiReference } from '@scalar/hono-api-reference';
-import type { Bindings } from '../index';
+import { getAgentConfigs } from '../../ai/agents';
+import type { Bindings, Variables } from '../index';
 
-const openapiRouter = new Hono<{ Bindings: Bindings }>();
+export function setupOpenAPI(app: OpenAPIHono<{ Bindings: Bindings; Variables: Variables }>) {
+  // GET /openapi.json — automatically crawls all Zod OpenAPI routes
+  app.get('/openapi.json', async (c) => {
+    // Generate the base Zod OpenAPI document
+    const spec = app.getOpenAPI31Document({
+      openapi: '3.1.0',
+      info: {
+        title: 'Renegade Capital API',
+        version: '2.0.0',
+        description:
+          'Multi-agent platform aligning personal wealth with social justice. Powered by Cloudflare Workers AI, Vectorize, D1, and R2.',
+      },
+      servers: [{ url: new URL(c.req.url).origin, description: 'API Server' }],
+    });
 
-// OpenAPI specification
-const openApiSpec = {
-  openapi: '3.1.0',
-  info: {
-    title: 'Core Template API',
-    version: '1.0.0',
-    description: 'API documentation for Cloudflare Workers AI powered application',
-  },
-  servers: [
-    {
-      url: '/api',
-      description: 'API Server',
-    },
-  ],
-  paths: {
-    '/auth/login': {
-      post: {
-        summary: 'User login',
-        tags: ['Authentication'],
-        requestBody: {
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                properties: {
-                  email: { type: 'string', format: 'email' },
-                  password: { type: 'string', minLength: 8 },
-                },
-                required: ['email', 'password'],
-              },
-            },
-          },
-        },
-        responses: {
-          '200': {
-            description: 'Login successful',
+    // Ensure paths object exists
+    spec.paths = spec.paths || {};
+
+    // Dynamically inject Cloudflare Agents SDK DO routes
+    const agentConfigs = getAgentConfigs(c.env);
+    for (const [agentId, config] of Object.entries(agentConfigs)) {
+      spec.paths[`/agents/${agentId}`] = {
+        post: {
+          summary: `${config.name} (streaming)`,
+          description: `Connect to the ${config.name} Durable Object using the Cloudflare Agents SDK. Expects a stream or SSE depending on the SDK client.`,
+          tags: ['Chat Agents'],
+          requestBody: {
             content: {
               'application/json': {
                 schema: {
                   type: 'object',
                   properties: {
-                    user: { type: 'object' },
-                    token: { type: 'string' },
-                    expiresAt: { type: 'string', format: 'date-time' },
+                    messages: { type: 'array', items: { type: 'object' } },
                   },
+                  required: ['messages'],
                 },
               },
             },
           },
-        },
-      },
-    },
-    '/dashboard/metrics': {
-      get: {
-        summary: 'Get dashboard metrics',
-        tags: ['Dashboard'],
-        security: [{ bearerAuth: [] }],
-        parameters: [
-          {
-            name: 'category',
-            in: 'query',
-            schema: { type: 'string' },
-          },
-          {
-            name: 'limit',
-            in: 'query',
-            schema: { type: 'integer', default: 100 },
-          },
-        ],
-        responses: {
-          '200': {
-            description: 'Metrics retrieved successfully',
-          },
-        },
-      },
-    },
-    '/threads': {
-      get: {
-        summary: 'List user threads',
-        tags: ['AI Threads'],
-        security: [{ bearerAuth: [] }],
-        responses: {
-          '200': {
-            description: 'Threads retrieved successfully',
-          },
-        },
-      },
-      post: {
-        summary: 'Create a new thread',
-        tags: ['AI Threads'],
-        security: [{ bearerAuth: [] }],
-        requestBody: {
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                properties: {
-                  title: { type: 'string', minLength: 1 },
-                },
-                required: ['title'],
-              },
+          responses: {
+            '200': {
+              description: 'Streaming text response',
             },
           },
         },
-        responses: {
-          '201': {
-            description: 'Thread created successfully',
-          },
-        },
-      },
-    },
-    '/health': {
-      get: {
-        summary: 'System health check',
-        tags: ['Health'],
-        responses: {
-          '200': {
-            description: 'System is healthy',
-          },
-        },
-      },
-    },
-  },
-  components: {
-    securitySchemes: {
-      bearerAuth: {
-        type: 'http',
-        scheme: 'bearer',
-      },
-    },
-  },
-};
+      };
+    }
 
-// GET /openapi.json
-openapiRouter.get('/openapi.json', (c) => {
-  return c.json(openApiSpec);
-});
+    return c.json(spec);
+  });
 
-// GET /swagger
-openapiRouter.get('/swagger', swaggerUI({ url: '/openapi.json' }));
+  // GET /swagger
+  app.get('/swagger', swaggerUI({ url: '/openapi.json' }));
 
-// GET /scalar
-openapiRouter.get(
-  '/scalar',
-  apiReference({
-    spec: {
+  // GET /scalar
+  app.get(
+    '/scalar',
+    apiReference({
+      theme: 'solarized',
       url: '/openapi.json',
-    },
-    theme: 'dark',
-  })
-);
+    } as any)
+  );
 
-// GET /docs - redirect to scalar
-openapiRouter.get('/docs', (c) => {
-  return c.redirect('/scalar');
-});
-
-export { openapiRouter };
+  // Redirect /docs to /scalar
+  app.get('/docs', (c) => c.redirect('/scalar'));
+}

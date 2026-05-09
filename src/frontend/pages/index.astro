@@ -1,133 +1,333 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
+import { TeamCarousel } from "@/components/TeamCarousel";
 ---
 
 <BaseLayout
-  title="Renegade Capital | The Activist's Podcast for Finance & Investments"
-  description="When we ask the big questions, we get real answers. Blending social justice investing with the frontiers of AI."
+  title="Renegade Capital | AI & The Social Justice Investor"
+  description="Aligning capital and artificial intelligence with equity, labor rights, and environmental justice."
 >
   <main class="flex flex-1 flex-col">
-    <section class="relative flex min-h-[85svh] flex-col items-center justify-center overflow-hidden bg-background px-6 py-24 text-center">
-      <div aria-hidden="true" class="pointer-events-none absolute inset-0 flex items-center justify-center">
-        <div class="h-[600px] w-[600px] rounded-full bg-[#a96c61]/10 blur-3xl"></div>
-        <div class="absolute h-[400px] w-[400px] rounded-full bg-[#bac48c]/10 blur-3xl translate-x-1/3 translate-y-1/3"></div>
+    <section
+      class="relative flex min-h-[90svh] flex-col items-center justify-center overflow-hidden bg-background px-6 py-24 text-center"
+    >
+      <div
+        aria-hidden="true"
+        class="pointer-events-none absolute inset-0 flex items-center justify-center"
+      >
+        <div class="h-[600px] w-[600px] rounded-full bg-[#a96c61]/15 blur-3xl">
+        </div>
+        <div
+          class="absolute h-[400px] w-[400px] rounded-full bg-[#bac48c]/15 blur-3xl translate-x-1/3 translate-y-1/3"
+        >
+        </div>
       </div>
 
-      <div class="relative z-10 mx-auto max-w-4xl">
-        <span class="mb-8 inline-flex items-center gap-2 rounded-full border border-[#a96c61]/30 bg-[#a96c61]/10 px-4 py-1.5 text-xs font-medium tracking-wide text-[#a96c61] uppercase">
-          <span class="size-1.5 rounded-full bg-[#a96c61] animate-pulse" aria-hidden="true"></span>
-          The Next Evolution
+      <div class="relative z-10 mx-auto max-w-5xl">
+        <span
+          class="mb-8 inline-flex items-center gap-2 rounded-full border border-[#a96c61]/30 bg-[#a96c61]/10 px-4 py-1.5 text-xs font-semibold tracking-widest text-[#a96c61] uppercase"
+        >
+          <span
+            class="size-2 rounded-full bg-[#a96c61] animate-pulse"
+            aria-hidden="true"></span>
+          AI x Social Justice Investing
         </span>
 
         <img
           src="https://images.squarespace-cdn.com/content/v1/682230d9918bf67071aafaab/2a4bdae2-a3d2-4268-88ca-05bada9d11ae/RC_Logo+transparent+%281%29.png"
           alt="Renegade Capital"
-          class="mx-auto w-full max-w-2xl dark:invert opacity-95 mb-10 drop-shadow-sm"
+          class="mx-auto w-full max-w-xl dark:invert opacity-95 mb-8 drop-shadow-sm"
         />
 
-        <h1 class="text-3xl font-bold leading-tight tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-          the activist's podcast <br className="hidden sm:block" />
-          <span class="text-muted-foreground font-light italic text-2xl sm:text-3xl">for finance & investments</span>
+        <h1
+          class="text-4xl font-extrabold leading-[1.1] tracking-tight text-foreground sm:text-5xl lg:text-6xl"
+        >
+          Wealth shouldn't come at the <br class="hidden lg:block" />
+          <span class="text-[#a96c61]">cost of our digital civil rights.</span>
         </h1>
 
-        <p class="mx-auto mt-8 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-          When we ask the big questions, something unexpected happens: <strong class="text-foreground font-semibold">We get real answers.</strong>
-          Now, we are expanding our mission, blending our roots in social activist investing with the frontier of Artificial Intelligence to unlock new audiences and interactive experiences.
+        <p
+          class="mx-auto mt-8 max-w-3xl text-lg leading-relaxed text-muted-foreground sm:text-xl"
+        >
+          The same capital dismantling systemic inequity in finance must now
+          interrogate the algorithms. From <strong class="text-foreground"
+            >algorithmic redlining</strong
+          > to the <strong class="text-foreground"
+            >environmental toll of data centers</strong
+          >, we’re bridging the gap between ethical investing and the AI
+          frontier.
         </p>
 
-        <div class="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-          <a href="/episodes" class="inline-flex h-11 items-center justify-center rounded-lg bg-[#a96c61] px-6 text-sm font-semibold text-white shadow transition-colors hover:bg-[#8b574d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a96c61]">
-            Explore AI Matchups
-          </a>
-          <a href="/investor" class="inline-flex h-11 items-center justify-center rounded-lg border border-border bg-background px-6 text-sm font-semibold text-foreground shadow-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        <div
+          class="mt-12 flex flex-col items-center gap-4 sm:flex-row sm:justify-center"
+        >
+          <a
+            href="#ai-agent"
+            class="inline-flex h-12 items-center justify-center rounded-lg bg-[#a96c61] px-8 text-sm font-bold text-white shadow-lg transition-all hover:bg-[#8b574d] hover:scale-105"
+          >
             Talk to the Investor AI
           </a>
+          <a
+            href="#experts"
+            class="inline-flex h-12 items-center justify-center rounded-lg border-2 border-[#bac48c] bg-transparent px-8 text-sm font-bold text-[#bac48c] shadow-sm transition-all hover:bg-[#bac48c]/10 hover:scale-105"
+          >
+            View the Expert Dossier
+          </a>
         </div>
       </div>
     </section>
 
-    <section class="bg-muted/30 px-6 py-24 border-y border-border/50">
+    <section
+      id="ai-agent"
+      class="bg-muted/30 px-6 py-24 border-y border-border/50"
+    >
       <div class="mx-auto max-w-6xl">
-        <div class="text-center mb-16">
-          <h2 class="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            A New Era of Engagement
-          </h2>
-          <p class="mx-auto mt-4 max-w-2xl text-base text-muted-foreground">
-            We're taking the core conversations of Renegade Capital and transforming them into interactive, AI-driven experiences designed to drive traffic, deepen engagement, and bridge the gap between ethical finance and technology.
+        <div class="grid gap-16 lg:grid-cols-2 items-center">
+          <div>
+            <h2
+              class="text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
+            >
+              Your Personal Social Justice <br /> Investment Strategist
+            </h2>
+            <p class="mt-6 text-lg text-muted-foreground leading-relaxed">
+              We've trained a custom AI on the foundational research of <em
+                >The Social Justice Investor</em
+              >. It’s designed to provide instant, expert feedback on your
+              portfolio, explain complex strategies, and help you identify "Wolf
+              in Sheep’s Clothing" investments in seconds.
+            </p>
+            <ul class="mt-8 space-y-4">
+              <li class="flex items-start gap-3">
+                <div
+                  class="mt-1 size-5 rounded-full bg-[#bac48c]/20 flex items-center justify-center text-[#bac48c]"
+                >
+                  ✓
+                </div>
+                <p class="text-sm text-foreground">
+                  <strong>Instant Strategy Feedback:</strong> Chat with a bot that
+                  knows your investment goals.
+                </p>
+              </li>
+              <li class="flex items-start gap-3">
+                <div
+                  class="mt-1 size-5 rounded-full bg-[#bac48c]/20 flex items-center justify-center text-[#bac48c]"
+                >
+                  ✓
+                </div>
+                <p class="text-sm text-foreground">
+                  <strong>Audit for Bias:</strong> Screen potential investments for
+                  digital redlining and labor risks.
+                </p>
+              </li>
+              <li class="flex items-start gap-3">
+                <div
+                  class="mt-1 size-5 rounded-full bg-[#bac48c]/20 flex items-center justify-center text-[#bac48c]"
+                >
+                  ✓
+                </div>
+                <p class="text-sm text-foreground">
+                  <strong>Accessible Expertise:</strong> Whether you have $100 or
+                  $100M, the advice is free and fast.
+                </p>
+              </li>
+            </ul>
+          </div>
+          <div
+            class="relative rounded-3xl border border-border bg-card p-4 shadow-2xl"
+          >
+            <div
+              class="aspect-[4/3] rounded-2xl bg-muted flex flex-col p-6 overflow-hidden"
+            >
+              <div class="space-y-4">
+                <div class="flex justify-start">
+                  <div
+                    class="max-w-[80%] rounded-2xl bg-background border border-border p-3 text-xs"
+                  >
+                    "I'm considering a fund that uses AI for healthcare
+                    diagnostics. Is this a Social Justice win?"
+                  </div>
+                </div>
+                <div class="flex justify-end">
+                  <div
+                    class="max-w-[80%] rounded-2xl bg-[#a96c61] p-3 text-xs text-white"
+                  >
+                    "According to Dr. Marzyeh Ghassemi's research, many clinical
+                    algorithms have data gaps for diverse skin tones. You should
+                    ask: 'How was the training data vetted for demographic
+                    equity?'"
+                  </div>
+                </div>
+              </div>
+              <div class="mt-auto pt-4 border-t border-border">
+                <div
+                  class="h-10 rounded-full bg-background border border-border px-4 flex items-center text-muted-foreground text-xs"
+                >
+                  Type a question about your portfolio...
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-background px-6 py-24">
+      <div class="mx-auto max-w-6xl">
+        <div
+          class="rounded-[2.5rem] bg-[#1a1a1a] p-8 md:p-16 text-white overflow-hidden relative"
+        >
+          <div class="relative z-10 grid gap-12 lg:grid-cols-2">
+            <div>
+              <h2 class="text-3xl font-bold sm:text-4xl">
+                Defending Humanity <br /> Against "Invisible" Deregulation
+              </h2>
+              <p class="mt-6 text-gray-400 leading-relaxed">
+                New federal directives are attempting to strip consumer
+                protections, remove privacy rights, and treat users like guinea
+                pigs for corporate AI experiments. This isn't just a tech
+                issue—it's an investment risk.
+              </p>
+              <div class="mt-10 grid gap-6 sm:grid-cols-2">
+                <div class="space-y-2">
+                  <h4 class="font-bold text-[#bac48c]">The AI Tax Movement</h4>
+                  <p class="text-xs text-gray-400">
+                    Supporting AOC and Bernie Sanders' vision to tax companies
+                    that replace humans with AI, funding a stronger social
+                    safety net.
+                  </p>
+                </div>
+                <div class="space-y-2">
+                  <h4 class="font-bold text-[#a96c61]">
+                    Environmental Justice
+                  </h4>
+                  <p class="text-xs text-gray-400">
+                    Combating the surge in data centers that drive up local
+                    utility costs and drain community water resources.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div
+              class="flex flex-col justify-center border-l border-white/10 pl-0 lg:pl-12"
+            >
+              <blockquote class="text-xl italic font-light text-gray-300">
+                "We must demand pro-worker AI—technologies designed to augment
+                human labor rather than merely automating it to inflate
+                shareholder returns."
+              </blockquote>
+              <cite class="mt-4 block font-semibold text-[#a96c61]"
+                >— Dr. Daron Acemoglu, Nobel Laureate</cite
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="experts" class="bg-muted/20 px-6 py-24">
+      <div class="mx-auto max-w-6xl text-center mb-16">
+        <h2
+          class="text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
+        >
+          The Expert Podcast Dossier
+        </h2>
+        <p class="mt-4 text-muted-foreground">
+          We've curated 6 cohorts of world-class thinkers for the podcast to
+          bridge AI and Capital.
+        </p>
+      </div>
+
+      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div
+          class="rounded-2xl border border-border bg-card p-6 transition-all hover:border-[#a96c61]/50 shadow-sm"
+        >
+          <span
+            class="text-[10px] font-bold uppercase tracking-widest text-[#a96c61]"
+            >Cohort I</span
+          >
+          <h3 class="mt-2 text-lg font-bold">Algorithmic Inequity</h3>
+          <p class="mt-2 text-sm text-muted-foreground">
+            Tackling digital redlining with Dr. Safiya Noble, Dr. Ruha Benjamin,
+            and Meredith Broussard.
           </p>
         </div>
-
-        <div class="grid gap-8 md:grid-cols-3">
-          <div class="group relative rounded-2xl border border-border bg-card p-8 transition-all hover:shadow-lg hover:border-[#a96c61]/50 overflow-hidden">
-            <div class="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-[#a96c61]/10 text-[#a96c61]">
-              <svg xmlns="http://www.w3.org/2000/svg" class="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="1" x2="12" y2="23"></line>
-                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-              </svg>
-            </div>
-            <h3 class="text-xl font-semibold text-foreground">Social Justice Investing</h3>
-            <p class="mt-4 text-sm leading-relaxed text-muted-foreground">
-              Rooted in Andrea Longton's <em>The Social Justice Investor</em>, our new interactive AI helps users build wealth while closing the wealth gap and building an inclusive economy.
-            </p>
-            <a href="/investor" class="mt-6 inline-flex items-center gap-1 text-sm font-medium text-[#a96c61] hover:underline">
-              Try the Investor Agent <span aria-hidden="true">&rarr;</span>
-            </a>
-          </div>
-
-          <div class="group relative rounded-2xl border border-border bg-card p-8 transition-all hover:shadow-lg hover:border-[#bac48c]/50 overflow-hidden">
-            <div class="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-[#bac48c]/10 text-[#bac48c]">
-              <svg xmlns="http://www.w3.org/2000/svg" class="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
-                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                <line x1="12" y1="19" x2="12" y2="23"></line>
-                <line x1="8" y1="23" x2="16" y2="23"></line>
-              </svg>
-            </div>
-            <h3 class="text-xl font-semibold text-foreground">AI-Curated Matchups</h3>
-            <p class="mt-4 text-sm leading-relaxed text-muted-foreground">
-              A brand new way to explore content. We use AI to generate hypothetical podcast matchups between leading voices in finance, social justice, and AI ethics.
-            </p>
-            <a href="/episodes" class="mt-6 inline-flex items-center gap-1 text-sm font-medium text-[#bac48c] hover:underline">
-              View Episodes <span aria-hidden="true">&rarr;</span>
-            </a>
-          </div>
-
-          <div class="group relative rounded-2xl border border-border bg-card p-8 transition-all hover:shadow-lg hover:border-primary/50 overflow-hidden">
-            <div class="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <svg xmlns="http://www.w3.org/2000/svg" class="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-              </svg>
-            </div>
-            <h3 class="text-xl font-semibold text-foreground">Interactive Viewports</h3>
-            <p class="mt-4 text-sm leading-relaxed text-muted-foreground">
-              Stop just listening. Start participating. Chat directly with the Podcast Curator AI to propose new questions, draft transcripts, and save collaborative notes dynamically.
-            </p>
-            <a href="/podcast" class="mt-6 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
-              Chat with the Curator <span aria-hidden="true">&rarr;</span>
-            </a>
-          </div>
+        <div
+          class="rounded-2xl border border-border bg-card p-6 transition-all hover:border-[#bac48c]/50 shadow-sm"
+        >
+          <span
+            class="text-[10px] font-bold uppercase tracking-widest text-[#bac48c]"
+            >Cohort II</span
+          >
+          <h3 class="mt-2 text-lg font-bold">Planetary Costs</h3>
+          <p class="mt-2 text-sm text-muted-foreground">
+            The material reality of AI with Dr. Kate Crawford and Sampriti
+            Bhattacharyya.
+          </p>
         </div>
+        <div
+          class="rounded-2xl border border-border bg-card p-6 transition-all hover:border-blue-400 shadow-sm"
+        >
+          <span
+            class="text-[10px] font-bold uppercase tracking-widest text-blue-400"
+            >Cohort III</span
+          >
+          <h3 class="mt-2 text-lg font-bold">The Future of Labor</h3>
+          <p class="mt-2 text-sm text-muted-foreground">
+            Defending worker dignity with Dr. Daron Acemoglu and Ai-jen Poo.
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-12 text-center">
+        <a
+          href="/episodes"
+          class="text-sm font-semibold text-[#a96c61] hover:underline"
+          >View the full list of 22 experts &rarr;</a
+        >
       </div>
     </section>
 
-    <section class="relative px-6 py-24 overflow-hidden">
-      <div class="absolute inset-0 bg-background"></div>
-      <div class="absolute inset-0 bg-gradient-to-b from-transparent to-[#a96c61]/5"></div>
-      
-      <div class="relative z-10 mx-auto max-w-3xl text-center">
-        <h2 class="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-          Ready to go renegade?
+    <section class="bg-background px-6 py-24">
+      <div class="mx-auto max-w-6xl text-center mb-16">
+        <h2
+          class="text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
+        >
+          Meet the Team
         </h2>
-        <p class="mt-6 text-base text-muted-foreground sm:text-lg">
-          Your money and your voice are powerful tools for social change. Start using them intentionally with our next-generation AI platform.
+      </div>
+      <TeamCarousel client:load />
+    </section>
+
+    <section
+      class="relative px-6 py-32 overflow-hidden border-t border-border/50"
+    >
+      <div
+        class="absolute inset-0 bg-gradient-to-br from-[#a96c61]/5 via-background to-[#bac48c]/5"
+      >
+      </div>
+
+      <div class="relative z-10 mx-auto max-w-3xl text-center">
+        <h2 class="text-4xl font-bold tracking-tight text-foreground">
+          Ready to align your money <br class="hidden sm:block" /> with the future?
+        </h2>
+        <p class="mt-6 text-lg text-muted-foreground">
+          Join the movement of renegade investors using AI to build a more just,
+          inclusive, and sustainable economy.
         </p>
-        <div class="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-          <a href="/investor" class="inline-flex h-12 items-center justify-center rounded-lg bg-[#a96c61] px-8 text-sm font-bold text-white shadow transition-all hover:bg-[#8b574d] hover:scale-105">
-            Start Investing
+        <div
+          class="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center"
+        >
+          <a
+            href="/investor"
+            class="inline-flex h-12 items-center justify-center rounded-lg bg-[#a96c61] px-10 text-sm font-bold text-white shadow-xl transition-all hover:bg-[#8b574d] hover:scale-105"
+          >
+            Get Started
           </a>
-          <a href="/guests" class="inline-flex h-12 items-center justify-center rounded-lg border-2 border-[#bac48c] bg-transparent px-8 text-sm font-bold text-[#bac48c] shadow-sm transition-all hover:bg-[#bac48c]/10 hover:scale-105">
-            Meet the Guests
-          </a>
+          <button
+            class="text-sm font-semibold text-foreground hover:text-[#a96c61] transition-colors"
+          >
+            Download the Prospectus
+          </button>
         </div>
       </div>
     </section>

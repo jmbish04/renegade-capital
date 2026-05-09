@@ -1,5 +1,5 @@
 -- Add visitor_logs table
-CREATE TABLE `visitor_logs` (
+CREATE TABLE IF NOT EXISTS `visitor_logs` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`ip_address` text,
 	`country` text,
@@ -11,7 +11,7 @@ CREATE TABLE `visitor_logs` (
 --> statement-breakpoint
 
 -- Add guests table
-CREATE TABLE `guests` (
+CREATE TABLE IF NOT EXISTS `guests` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`persona_description` text NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE `guests` (
 --> statement-breakpoint
 
 -- Add episodes table
-CREATE TABLE `episodes` (
+CREATE TABLE IF NOT EXISTS `episodes` (
 	`id` text PRIMARY KEY NOT NULL,
 	`title` text NOT NULL,
 	`description` text NOT NULL,
@@ -36,7 +36,7 @@ CREATE TABLE `episodes` (
 --> statement-breakpoint
 
 -- Add episode_notes table
-CREATE TABLE `episode_notes` (
+CREATE TABLE IF NOT EXISTS `episode_notes` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`episode_id` text NOT NULL,
 	`content` text NOT NULL,
@@ -50,7 +50,7 @@ CREATE TABLE `episode_notes` (
 --> statement-breakpoint
 
 -- Add research table
-CREATE TABLE `research` (
+CREATE TABLE IF NOT EXISTS `research` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`domain` text NOT NULL,

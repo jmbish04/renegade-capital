@@ -1,10 +1,10 @@
-import { HomeIcon } from "lucide-react";
 import * as React from "react";
 
 import { Icons } from "@/components/Icons";
 import { MainNav } from "@/components/MainNav";
 import { MobileNav } from "@/components/MobileNav";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { HealthBadge } from "@/components/HealthBadge";
 import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { siteConfig } from "@/lib/config";
@@ -45,14 +45,19 @@ export function Header() {
         <div className="flex h-(--header-height) items-center **:data-[slot=separator]:h-4! 3xl:fixed:container">
           <MobileNav className="flex lg:hidden" />
 
+          {/* RC Logo icon — matches deployed site */}
           <a
             href="/"
             className={cn(
-              buttonVariants({ variant: "ghost", size: "icon" }),
-              "hidden size-8 lg:flex",
+              buttonVariants({ variant: "ghost" }),
+              "size-8 flex items-center justify-center rounded-full overflow-hidden p-0",
             )}
           >
-            <HomeIcon className="size-5" />
+            <img
+              alt="Home"
+              className="h-full w-full object-cover dark:invert"
+              src="https://images.squarespace-cdn.com/content/v1/682230d9918bf67071aafaab/26bed561-51cd-46da-a999-c1c0a599a7fe/RC_Icon.png"
+            />
             <span className="sr-only">Home</span>
           </a>
 
@@ -72,6 +77,8 @@ export function Header() {
               <span className="w-fit text-xs text-muted-foreground tabular-nums">{starCount}</span>
             </a>
 
+            <Separator orientation="vertical" className="my-auto" />
+            <HealthBadge />
             <Separator orientation="vertical" className="my-auto" />
             <ThemeToggle />
           </div>

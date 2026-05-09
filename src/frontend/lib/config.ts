@@ -10,9 +10,14 @@ export type SiteConfig = {
     github: string;
   };
   navItems: {
-    href: string;
+    href?: string;
     label: string;
     external?: boolean;
+    items?: {
+      href: string;
+      label: string;
+      external?: boolean;
+    }[];
   }[];
 };
 
@@ -30,10 +35,32 @@ export const siteConfig: SiteConfig = {
   },
   navItems: [
     { href: "/", label: "Home" },
-    { href: "/investor", label: "🤖 🏦 Investor Agent" },
-    { href: "/podcast", label: "🤖 🔊 Podcast Agent" },
-    { href: "/heros", label: "Fellow Social Justice Heroes" },
-    { href: "/clash", label: "❌ ✍️ 2026 Redlining" },
-    { href: "/docs", label: "🤓 Docs", external: true },
+    {
+      label: "Agents",
+      items: [
+        { href: "/chat/investor", label: "Investor Agent" },
+        { href: "/chat/podcast", label: "Podcast Agent" },
+        { href: "/chat/policy", label: "Policy Agent" },
+      ],
+    },
+    { href: "/episodes", label: "💡 Episode Ideas" },
+    { href: "/guests", label: "Social Justice AI Heroes" },
+    { href: "/research", label: "Research & Foundation" },
+    {
+      label: "🚨 Action Alert",
+      items: [
+        { href: "/policy/dashboard", label: "Policy Analytics" },
+        { href: "/policy/review", label: "Document Reader" },
+      ],
+    },
+    {
+      label: "Admin",
+      items: [
+        { href: "/health", label: "System Health" },
+        { href: "/scaler", label: "Scaler", external: true },
+        { href: "/swagger", label: "Swagger", external: true },
+        { href: "/openapi.json", label: "OpenAPI", external: true },
+      ],
+    },
   ],
 };

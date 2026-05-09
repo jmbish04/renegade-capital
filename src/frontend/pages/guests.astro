@@ -1,0 +1,31 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { GuestList } from "@/components/GuestList";
+import { siteConfig } from "@/lib/config";
+---
+
+<BaseLayout
+  title="Heroes of Social Justice & AI | Renegade Capital"
+  description="Explore visionary guests at the intersection of AI, finance, and social justice"
+>
+  <div class="container mx-auto px-4 py-12">
+    <div class="mb-12">
+      <h1 class="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+        Heroes of Social Justice & AI
+      </h1>
+      <p class="mt-4 text-lg text-muted-foreground max-w-3xl">
+        Meet the visionaries, scholars, and practitioners reshaping the future at the intersection of finance, technology, and equity.
+      </p>
+      <div class="mt-6">
+        <a
+          href="/episodes"
+          class="inline-flex h-11 items-center justify-center rounded-lg border border-border bg-background px-6 text-sm font-semibold text-foreground shadow-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          View Episode Matchups
+        </a>
+      </div>
+    </div>
+
+    <GuestList client:load />
+  </div>
+</BaseLayout>

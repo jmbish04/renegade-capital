@@ -1,9 +1,9 @@
-import { Hono } from "hono";
+import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
 
-export const clashRouter = new Hono();
+export const clashRouter = new OpenAPIHono();
 
 export const clashData = {
-  pdfUrl: "https://drive.google.com/file/d/1tItjO_kVpZY-WtUWUN9w0xsF0q4qCWvW/preview",
+  pdfUrl: "https://pub-434f7a70bfdd41a382e8631347f40764.r2.dev/trump-policy/Americas-AI-Action-Plan.pdf",
   pillars: [
     {
       id: "bias",
@@ -68,6 +68,21 @@ export const clashData = {
   ]
 };
 
-clashRouter.get("/", (c) => {
-  return c.json(clashData);
+const getClashRoute = createRoute({
+  method: 'get',
+  path: '/',
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.any(),
+        },
+      },
+      description: 'Get Clash strategic data',
+    },
+  },
+});
+
+clashRouter.openapi(getClashRoute, (c) => {
+  return c.json(clashData as any, 200);
 });
