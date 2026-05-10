@@ -386,11 +386,6 @@ def generate_transcript_and_artwork(episode_id: str, cf_token: str, cf_account: 
             {policy_rationales}
             
             The host is 'Host' (or Andrea Longton). The guest(s) MUST exactly match these selected guests: {json.dumps(selected_guests_context)}.
-            
-            IMPORTANT PRONUNCIATION REQUIREMENT:
-            Whenever Andrea's name is spoken by her or others, please use the following phonetic spelling in the text so the Text-to-Speech engine pronounces it correctly:
-            "AN-dree-uh Longton" (Sounds like the word "Ann" followed by "dree-uh"). Do not write "Andrea", always write "AN-dree-uh".
-            
             CRITICAL STRUCTURAL REQUIREMENTS:
             You must follow this exact rigid structure for the podcast transcript:
             
@@ -571,7 +566,7 @@ def process_episode(episode_id: str, cf_token: str, cf_account: str, worker_url:
     pause = AudioSegment.silent(duration=500) # 500ms natural gap
 
     for idx, line in enumerate(manifest):
-        text = line.get("dialogue")
+        text = line.get("transcriptLine")
         if not text:
             continue
             
@@ -579,7 +574,7 @@ def process_episode(episode_id: str, cf_token: str, cf_account: str, worker_url:
         import re
         text = re.sub(r'\bAndrea\b', 'AN-dree-uh', text, flags=re.IGNORECASE)
             
-        guestName = line.get("guestName", "Host")
+        guestName = line.get("speakerSource", "Host")
         speaker = get_voice_for_guest(guestName, guests)
         
         print(f"[{idx+1}/{len(manifest)}] Generating: {guestName} ({speaker})...")
