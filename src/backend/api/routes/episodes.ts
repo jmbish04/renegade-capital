@@ -71,6 +71,49 @@ episodesRouter.get('/pending-audio', async (c) => {
 
   return c.json({ episodes: uniquePending } as any, 200);
 });
+episodesRouter.get('/', async (c) => {
+  const db = drizzle(c.env.DB);
+  
+  // Fetch active episodes
+  const activeEpisodes = await db.select().from(episodes).where(eq(episodes.isActive, true));
+  
+  // Fetch active tag maps
+  const activeTagMaps = await db.select().from(episodeTagMap).where(eq(episodeTagMap.isActive, true));
+  
+  // Fetch active tags
+  const activeTags = await db.select().from(episodeTag).where(eq(episodeTag.isActive, true));
+  
+  // Create a map from tagId to tag name
+  const tagIdToName: Record<number, string> = {};
+  activeTags.forEach(t => tagIdToName[t.id] = t.name);
+  
+  // Map episodeId to array of tag names
+  const episodeIdToTags: Record<string, string[]> = {};
+  activeTagMaps.forEach(tm => {
+    if (!episodeIdToTags[tm.episodeId]) {
+      episodeIdToTags[tm.episodeId] = [];
+    }
+    if (tagIdToName[tm.tagId]) {
+      episodeIdToTags[tm.episodeId].push(tagIdToName[tm.tagId]);
+    }
+  });
+  
+  // Attach tags to episodes
+  const result = activeEpisodes.map(ep => ({
+    ...ep,
+    tags: episodeIdToTags[ep.id] || []
+  }));
+  
+  // Sort by created at descending
+  result.sort((a, b) => {
+    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    return dateB - dateA;
+  });
+
+  return c.json({ episodes: result } as any, 200);
+});
+
 episodesRouter.get('/:id', async (c) => {
   const db = drizzle(c.env.DB);
   const id = c.req.param('id');
