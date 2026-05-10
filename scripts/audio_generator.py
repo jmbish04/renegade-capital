@@ -14,6 +14,82 @@ import base64
 import hashlib
 from pathlib import Path
 
+import atexit
+atexit.register(lambda: report.save("podcast_generation_report.html"))
+
+
+class HtmlReport:
+    def __init__(self):
+        self.html_lines = []
+        self.html_lines.append("<html><head><style>body { font-family: sans-serif; line-height: 1.6; } .req { margin-bottom: 10px; border: 1px solid #ccc; padding: 10px; background: #f9f9f9; border-radius: 5px; } .success { color: #155724; font-weight: bold; background-color: #d4edda; padding: 3px 6px; border-radius: 3px; } .error { color: #721c24; font-weight: bold; background-color: #f8d7da; padding: 3px 6px; border-radius: 3px; } pre { background: #eee; padding: 8px; white-space: pre-wrap; word-wrap: break-word; border-radius: 4px; border: 1px solid #ddd; max-height: 400px; overflow-y: auto; } h1, h2, h3 { color: #333; margin-bottom: 5px; } .step { background: #e9ecef; padding: 10px; border-left: 5px solid #007bff; margin-top: 20px; } .info { font-style: italic; color: #555; }</style></head><body>")
+        self.html_lines.append("<h1>Podcast Generation Report</h1>")
+        self.html_lines.append("<div class='step'><h2>Overall Game Plan</h2><ul><li>1. Check API Health</li><li>2. Assign missing guest sexes (for TTS voices)</li><li>3. Fetch episodes missing transcripts and generate transcripts + artwork</li><li>4. Fetch episodes pending audio and generate audio</li></ul></div>")
+
+    def add_step(self, message):
+        print(message)
+        self.html_lines.append(f"<div class='step'><h3>{message}</h3></div>")
+
+    def add_info(self, message):
+        print(message)
+        self.html_lines.append(f"<p class='info'>{message}</p>")
+
+    def add_api_call(self, method, url, payload, status_code, response_text, expected=True):
+        icon = "✅" if expected else "❌"
+        status_class = "success" if expected else "error"
+        self.html_lines.append("<div class='req'>")
+        self.html_lines.append(f"<strong>{icon} {method.upper()} {url}</strong> - <span class='{status_class}'>Status: {status_code}</span>")
+        if payload:
+            self.html_lines.append(f"<div><strong>Payload:</strong><pre>{payload}</pre></div>")
+        self.html_lines.append(f"<div><strong>Response:</strong><pre>{response_text}</pre></div>")
+        self.html_lines.append("</div>")
+
+    def save(self, filename="podcast_generation_report.html"):
+        self.html_lines.append("</body></html>")
+        with open(filename, "w", encoding="utf-8") as f:
+            f.write("\\n".join(self.html_lines))
+        print(f"\\n📄 Report saved to {filename}")
+
+report = HtmlReport()
+
+original_request = requests.request
+
+def logged_request(method, url, **kwargs):
+    try:
+        response = original_request(method, url, **kwargs)
+        payload = kwargs.get("json") or kwargs.get("data")
+        
+        if method == "PUT" and "audio" in url:
+            payload_str = "[Binary Audio Data Upload]"
+        else:
+            payload_str = json.dumps(payload, indent=2) if kwargs.get("json") else str(payload)[:1000] if payload else ""
+            
+        expected = response.status_code in (200, 201)
+        
+        content_type = response.headers.get("content-type", "")
+        if "audio" in content_type or "mpeg" in content_type:
+            resp_text = f"[Binary Audio Response: {len(response.content)} bytes]"
+        else:
+            try:
+                resp_text = response.text
+                if len(resp_text) > 200000:
+                    resp_text = resp_text[:200000] + "\n...[TRUNCATED]"
+            except:
+                resp_text = f"[Binary Data: {len(response.content)} bytes]"
+                
+        report.add_api_call(method, url, payload_str, response.status_code, resp_text, expected)
+        return response
+    except Exception as e:
+        payload = kwargs.get("json") or kwargs.get("data")
+        payload_str = json.dumps(payload, indent=2) if kwargs.get("json") else str(payload)[:1000] if payload else ""
+        report.add_api_call(method, url, payload_str, "ERROR", str(e), False)
+        raise e
+
+requests.request = logged_request
+requests.get = lambda url, **kwargs: logged_request("GET", url, **kwargs)
+requests.post = lambda url, **kwargs: logged_request("POST", url, **kwargs)
+requests.put = lambda url, **kwargs: logged_request("PUT", url, **kwargs)
+
+
 # Validating dependencies
 try:
     from pydub import AudioSegment
@@ -30,7 +106,10 @@ except ImportError:
 
 # ─── Pydantic Models ─────────────────────────────────────────────────────────────
 class TranscriptLine(BaseModel):
-    speaker: str = Field(..., description="Name of speaker (e.g. Host, or guest's specific name)")
+    speaker: str = Field(..., description="Name of speaker (Must be 'Andrea Longton' if host, or the exact guest name if guest)")
+    isHost: bool = Field(..., description="True if the speaker is Andrea Longton (the host)")
+    isGuest: bool = Field(..., description="True if the speaker is a guest")
+    guestId: str = Field(None, description="If isGuest is true, provide the exact ID of the guest from the provided guest list")
     text: str
     cue: str = ""
 
@@ -38,8 +117,12 @@ class TranscriptOutput(BaseModel):
     transcript: list[TranscriptLine]
 
 class GuestSelectionOutput(BaseModel):
-    selected_guests: list[str] = Field(..., description="List of guest names chosen for the episode")
+    selected_guests: list[str] = Field(..., description="List of exact guest names chosen for the episode (min 1, max 4)")
     reasoning: str = Field(..., description="Brief reasoning for why these guests were selected based on the topic")
+
+class TitleOptimizationOutput(BaseModel):
+    is_appropriate: bool = Field(..., description="True if the title is strictly 5-7 words, catchy, and appropriate for Apple Podcasts.")
+    optimized_title: str = Field(..., description="If is_appropriate is False, provide a new title strictly 5-7 words maximum.")
 
 class TopicsOutput(BaseModel):
     social_justice_investment_topics: str = Field(..., description="Generated social justice investment topics and context.")
@@ -175,7 +258,7 @@ def run_ai_task(system_prompt: str, user_prompt: str, output_schema: type[BaseMo
     return json.loads(content)
 
 def get_pending_episodes(worker_url: str) -> list:
-    print("Fetching episodes pending audio generation...")
+    report.add_step("Fetching episodes pending audio generation...")
     url = f"{worker_url}/api/episodes/pending-audio"
     try:
         resp = requests.get(url, timeout=10)
@@ -186,7 +269,7 @@ def get_pending_episodes(worker_url: str) -> list:
         return []
 
 def get_pending_transcripts(worker_url: str) -> list:
-    print("Fetching episodes pending transcript generation...")
+    report.add_step("Fetching episodes pending transcript generation...")
     url = f"{worker_url}/api/episodes/pending-transcripts"
     try:
         resp = requests.get(url, timeout=10)
@@ -220,7 +303,7 @@ def fetch_policy_pages(worker_url: str):
 
 def generate_transcript_and_artwork(episode_id: str, cf_token: str, cf_account: str, worker_url: str, guests: list):
     import uuid
-    print(f"\n--- Generating Transcript & Artwork for Episode {episode_id} ---")
+    report.add_step(f"Generating Transcript & Artwork for Episode {episode_id}")
     try:
         # Fetch episode details
         resp = requests.get(f"{worker_url}/api/episodes/{episode_id}", timeout=10)
@@ -242,27 +325,65 @@ def generate_transcript_and_artwork(episode_id: str, cf_token: str, cf_account: 
                 transcript_id = str(uuid.uuid4())
         else:
             transcript_id = str(uuid.uuid4())
-            # Guest selection pre-step
-            print("Running AI guest selection pre-step...")
-            guest_context = [{"name": g.get("name"), "expertise": g.get("expertise")} for g in guests if g.get("name")]
-            
-            selection_prompt = f"""
-            Review the following episode topic and target tags. Then select 1 to 2 guests from the Available Guests list whose expertise perfectly matches the episode's themes.
+            # Title Check & Optimize pre-step
+            word_count = len(title.split())
+            if word_count > 7:
+                print("Checking/optimizing episode title...")
+                title_prompt = f"""
+                The current episode title is too long ({word_count} words). It needs to sound like normal human language and something someone would click on from Apple Podcasts.
+                Rewrite it to be exactly 5 to 7 words maximum.
+                
+                Current Title: "{title}"
+                Description: {desc}
+                """
+                title_dict = run_ai_task(title_prompt, "Optimize this title.", TitleOptimizationOutput, cf_token, cf_account)
+                if not title_dict.get("is_appropriate", True):
+                    new_title = title_dict.get("optimized_title", title)
+                    if new_title and new_title != title:
+                        print(f"✅ AI optimized title: '{new_title}'")
+                        try:
+                            title_resp = requests.put(f"{worker_url}/api/episodes/{episode_id}/title", json={"title": new_title}, timeout=30)
+                            title_resp.raise_for_status()
+                            title = new_title
+                            print("✅ Synced new title to database.")
+                        except Exception as e:
+                            print(f"⚠️ Failed to sync title: {e}")
 
-            Episode Title: "{title}"
-            Description: {desc}
-            Target Tags: {tags}
+            # Guest selection pre-step
+            episode_guests = episode_data.get("guests", [])
+            primary_guests = [g for g in episode_guests if g.get("isPrimary")]
             
-            Available Guests: {json.dumps(guest_context)}
-            """
-            
-            selection_dict = run_ai_task(selection_prompt, "Select the best guests for this episode.", GuestSelectionOutput, cf_token, cf_account)
-            selected_guest_names = selection_dict.get("selected_guests", [])
-            print(f"✅ AI selected guests: {selected_guest_names}")
-            
-            selected_guests_context = [g for g in guest_context if g["name"] in selected_guest_names]
-            if not selected_guests_context:
-                selected_guests_context = guest_context # Fallback if AI hallucinated
+            if len(primary_guests) < 1 or len(primary_guests) > 4:
+                print("Running AI guest selection pre-step...")
+                guest_context = [{"id": g.get("id"), "name": g.get("name"), "expertise": g.get("expertise")} for g in guests if g.get("name")]
+                
+                selection_prompt = f"""
+                Review the following episode topic and target tags. Then select exactly 1 to 4 primary guests from the Available Guests list whose expertise perfectly matches the episode's themes.
+                Do NOT select 0 guests. You MUST select between 1 and 4 primary guests.
+
+                Episode Title: "{title}"
+                Description: {desc}
+                Target Tags: {tags}
+                
+                Available Guests: {json.dumps(guest_context)}
+                """
+                
+                selection_dict = run_ai_task(selection_prompt, "Select exactly 1 to 4 primary guests for this episode.", GuestSelectionOutput, cf_token, cf_account)
+                selected_guest_names = selection_dict.get("selected_guests", [])
+                print(f"✅ AI selected guests: {selected_guest_names}")
+                
+                primary_ids = [g["id"] for g in guests if g["name"] in selected_guest_names]
+                backup_ids = [g["id"] for g in guests if g["name"] not in selected_guest_names]
+                try:
+                    sync_guests_resp = requests.post(f"{worker_url}/api/episodes/{episode_id}/guests", json={"primaryGuestIds": primary_ids[:4], "backupGuestIds": backup_ids}, timeout=30)
+                    sync_guests_resp.raise_for_status()
+                    print("✅ Synced primary guests to database.")
+                    selected_guests_context = [{"id": g["id"], "name": g["name"]} for g in guests if g["id"] in primary_ids[:4]]
+                except Exception as e:
+                    print(f"⚠️ Failed to sync guests: {e}")
+                    selected_guests_context = guest_context
+            else:
+                selected_guests_context = [{"id": g.get("id"), "name": g.get("name")} for g in primary_guests]
                 
             # Tag Mapping Pre-Step
             mapped_tags = episode_data.get("tags", [])
@@ -385,7 +506,12 @@ def generate_transcript_and_artwork(episode_id: str, cf_token: str, cf_account: 
             TRUMP AI POLICY RATIONALES TO WEAVE IN:
             {policy_rationales}
             
-            The host is 'Host' (or Andrea Longton). The guest(s) MUST exactly match these selected guests: {json.dumps(selected_guests_context)}.
+            The host is Andrea Longton. The guest(s) MUST exactly match these selected guests: {json.dumps(selected_guests_context)}.
+            
+            SPEAKER LABEL REQUIREMENTS (STRICT):
+            - For the host, you MUST set `isHost` to true, `isGuest` to false, and `speaker` exactly to "Andrea Longton".
+            - For guests, you MUST set `isGuest` to true, `isHost` to false, `speaker` exactly to their actual name, and `guestId` exactly to their ID from the list above. NEVER use generic labels like "Guest".
+
             CRITICAL STRUCTURAL REQUIREMENTS:
             You must follow this exact rigid structure for the podcast transcript:
             
@@ -393,7 +519,7 @@ def generate_transcript_and_artwork(episode_id: str, cf_token: str, cf_account: 
                - Andrea Longton introduces the guests and their backgrounds, immediately drawing the connection to her social justice investor mission.
                - Incorporate the specific "Social Justice Investment Topics" and "AI & Social Justice Topics" provided above to build this connection.
                - IMPORTANT: Andrea should NEVER say "the title of this podcast is..." The intro must sound completely natural and organic.
-               - For EACH guest (up to 4 primary guests):
+               - For EACH guest:
                  * Andrea tees up the guest by briefly describing the overlap area (the center of the Venn diagram) between their expertise and social justice investing.
                  * The guest briefly discusses their side of the overlap and reiterates their alignment with social justice.
                  * Andrea summarizes the center of that Venn diagram in simpler words, highlighting how important it is to partner on this shared commonality.
@@ -417,7 +543,7 @@ def generate_transcript_and_artwork(episode_id: str, cf_token: str, cf_account: 
                - Include an explicit cue indicating a fade out to a musical soundtrack at the very end.
             """
             
-            print("Running AI transcript generation...")
+            report.add_info("Running AI transcript generation...")
             transcript_dict = run_ai_task(transcript_prompt, "Generate the transcript.", TranscriptOutput, cf_token, cf_account)
             transcript = transcript_dict.get("transcript", [])
             
@@ -447,7 +573,7 @@ def generate_transcript_and_artwork(episode_id: str, cf_token: str, cf_account: 
         if has_album and has_cover:
             print("✅ Artwork & Cover Photo already exist. Skipping artwork generation.")
         else:
-            print("Triggering artwork generation...")
+            report.add_info("Triggering artwork generation...")
             artwork_prompt = f"Podcast album art for an episode titled '{title}'. Topic: {desc}. High quality, professional, abstract, vibrant colors."
             cover_prompt = f"Podcast hero background cover photo for an episode titled '{title}'. Topic: {desc}. Professional, cinematic, minimal text."
             art_resp = requests.post(f"{worker_url}/api/episodes/{episode_id}/artwork", json={"albumPrompt": artwork_prompt, "coverPrompt": cover_prompt}, timeout=180)
@@ -645,7 +771,7 @@ def main():
 
     # Pre-step: Determine missing guest sexes
     try:
-        print("Checking for guests missing sex properties...")
+        report.add_step("Checking for guests missing sex properties...")
         missing_resp = requests.get(f"{worker_url}/api/guests/missing-sex", timeout=10)
         if missing_resp.status_code == 200:
             missing_guests = missing_resp.json().get("guests", [])
@@ -669,7 +795,7 @@ def main():
     # Pre-step: Generate missing transcripts
     pending_transcripts = get_pending_transcripts(worker_url)
     if pending_transcripts:
-        print(f"Found {len(pending_transcripts)} episodes missing transcripts.")
+        report.add_info(f"Found {len(pending_transcripts)} episodes missing transcripts.")
         guests = get_guests(worker_url)
         for ep_id in pending_transcripts:
             generate_transcript_and_artwork(ep_id, cf_token, cf_account, worker_url, guests)
@@ -688,10 +814,10 @@ def main():
         print("No episodes pending audio generation. Provide an ID manually or ensure there are transcripts ready.")
         sys.exit(0)
         
-    print(f"Found {len(episodes_to_process)} episodes pending audio to process.")
+    report.add_info(f"Found {len(episodes_to_process)} episodes pending audio to process.")
 
     for episode_id in episodes_to_process:
-        print(f"\n{'='*50}\nProcessing Episode Audio: {episode_id}\n{'='*50}")
+        report.add_step(f"Processing Episode Audio: {episode_id}")
         process_episode(episode_id, cf_token, cf_account, worker_url, guests)
 
 if __name__ == "__main__":

@@ -515,11 +515,11 @@ export function EpisodeDetailIsland() {
               // Deduce host from transcript if possible
               let activeHost = teamMembers[0]; // Default to Andrea Longton
               if (episodeData.transcriptLines && episodeData.transcriptLines.length > 0) {
-                const hostLine = episodeData.transcriptLines.find((l: any) => l.speakerSource === 'host');
-                if (hostLine && hostLine.speakerName) {
+                const hostLine = episodeData.transcriptLines.find((l: any) => l.isHost);
+                if (hostLine && hostLine.speakerSource) {
                   const found = teamMembers.find(tm => 
-                    tm.name.toLowerCase().includes(hostLine.speakerName.toLowerCase()) ||
-                    hostLine.speakerName.toLowerCase().includes(tm.name.toLowerCase().split(' ')[0])
+                    tm.name.toLowerCase().includes(hostLine.speakerSource.toLowerCase()) ||
+                    hostLine.speakerSource.toLowerCase().includes(tm.name.toLowerCase().split(' ')[0])
                   );
                   if (found) activeHost = found;
                 }
@@ -598,17 +598,19 @@ export function EpisodeDetailIsland() {
                   <div className="max-w-3xl mx-auto p-6 space-y-8">
                     {episodeData.transcriptLines.map((line: any) => {
                       const speakerGuest = parsedGuests.find((g: any) => g.id === line.guestId);
-                      const isHost = line.speakerSource === 'host';
-                      const hostImage = isHost ? (hostImages[line.speakerName?.toLowerCase()] || hostImages["host"]) : undefined;
+                      const isHost = line.isHost || line.speakerSource?.toLowerCase() === 'andrea longton' || line.speakerSource?.toLowerCase() === 'host';
+                      const speakerName = line.speakerSource || (speakerGuest ? speakerGuest.name : 'Unknown');
+                      const hostImage = isHost ? (hostImages[speakerName.toLowerCase()] || hostImages["host"]) : undefined;
+
                       return (
                         <div key={line.id} className={`flex gap-4 ${isHost ? '' : 'flex-row-reverse'}`}>
                           <Avatar className="size-10 shrink-0">
                             <AvatarImage src={isHost ? hostImage : (speakerGuest?.headshotUrl || undefined)} />
-                            <AvatarFallback>{isHost ? 'RC' : speakerGuest?.name?.charAt(0) || 'G'}</AvatarFallback>
+                            <AvatarFallback>{isHost ? 'RC' : speakerName.charAt(0) || 'G'}</AvatarFallback>
                           </Avatar>
                           <div className={`flex flex-col gap-1 ${isHost ? 'items-start' : 'items-end'}`}>
                             <div className="flex items-center gap-2">
-                               <span className="text-sm font-bold text-foreground">{isHost ? (line.speakerName || 'Renegade Capital') : speakerGuest?.name || 'Guest'}</span>
+                               <span className="text-sm font-bold text-foreground">{speakerName}</span>
                                {line.cue && <span className="text-xs text-muted-foreground">{line.cue}</span>}
                             </div>
                             <div className={`p-4 rounded-xl max-w-2xl text-sm leading-relaxed ${isHost ? 'bg-muted text-foreground rounded-tl-sm' : 'bg-primary/10 text-foreground border border-primary/20 rounded-tr-sm'}`}>

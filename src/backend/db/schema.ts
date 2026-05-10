@@ -171,6 +171,28 @@ export const guests = sqliteTable("guests", {
     .default(sql`(unixepoch())`),
 });
 
+
+/**
+ * Podcast hosts table for the Renegade Capital platform
+ */
+export const hosts = sqliteTable("hosts", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  personaDescription: text("persona_description").notNull(),
+  expertise: text("expertise").notNull(), // JSON array string
+  tone: text("tone").notNull(),
+  background: text("background").notNull(),
+  chemistry: text("chemistry").notNull(), // JSON array string
+  domain: text("domain").notNull(), // JSON array string
+  headshotUrl: text("headshot_url"),
+  affiliation: text("affiliation"),
+  podcastFitRationale: text("podcast_fit_rationale"),
+  sex: text("sex", { enum: ["M", "F", "Other"] }),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
 /**
  * Episodes table for the Renegade Capital platform
  */
@@ -222,7 +244,7 @@ export const episodeTagMap = sqliteTable("episode_tag_map", {
   isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
 });
 
-
+guest
 
 /**
  * Episode notes table for contextual notes on podcast matchups
@@ -411,6 +433,8 @@ export const episodeTranscriptLines = sqliteTable("episode_transcript_lines", {
   transcriptId: text("transcript_id").notNull().default(""), // Added to group transcript versions
   lineNumber: integer("line_number").notNull(),
   speakerSource: text("speaker_source").notNull(), // 'host' | 'guest'
+  isHost: integer("is_host", { mode: "boolean" }).notNull().default(false),
+  isGuest: integer("is_guest", { mode: "boolean" }).notNull().default(false),
   guestId: text("guest_id").references(() => guests.id, { onDelete: "set null" }),
   transcriptLine: text("transcript_line").notNull(),
   cue: text("cue"),

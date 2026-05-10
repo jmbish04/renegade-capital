@@ -2,7 +2,7 @@ import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { 
-  episodes, episodeTranscriptLines, episodeTagMap, episodeTag,
+  episodes, episodeTranscriptLines, episodeTagMap, episodeTag, episodeTagType,
   trumpPolicyPageEpisodeMap, trumpPolicyPage, episodeGuestMap, guests, podcastAudio
 } from '../../db/schema';
 import type { Bindings } from '../index';
@@ -120,7 +120,34 @@ episodesRouter.get('/:id', async (c) => {
   const ep = await db.select().from(episodes).where(eq(episodes.id, id));
   if (ep.length === 0) return c.json({ error: 'Not found' }, 404);
   
-  const tl = await db.select().from(episodeTranscriptLines).where(eq(episodeTranscriptLines.episodeId, id));
+  const tl = await db.select({
+    id: episodeTranscriptLines.id,
+    episodeId: episodeTranscriptLines.episodeId,
+    transcriptId: episodeTranscriptLines.transcriptId,
+    lineNumber: episodeTranscriptLines.lineNumber,
+    speakerSource: episodeTranscriptLines.speakerSource,
+    isHost: episodeTranscriptLines.isHost,
+    isGuest: episodeTranscriptLines.isGuest,
+    guestId: episodeTranscriptLines.guestId,
+    transcriptLine: episodeTranscriptLines.transcriptLine,
+    cue: episodeTranscriptLines.cue,
+    createdAt: episodeTranscriptLines.createdAt,
+    isActive: episodeTranscriptLines.isActive,
+    guestName: guests.name
+  })
+  .from(episodeTranscriptLines)
+  .leftJoin(guests, eq(episodeTranscriptLines.guestId, guests.id))
+  .where(eq(episodeTranscriptLines.episodeId, id));
+
+  const mappedTl = tl.map(line => {
+    let finalSpeakerName = "ERROR";
+    if (line.guestName) {
+      finalSpeakerName = line.guestName;
+    } else if (line.speakerSource) {
+      finalSpeakerName = line.speakerSource;
+    }
+    return { ...line, speakerSource: finalSpeakerName };
+  });
   
   // Audio
   const pa = await db.select().from(podcastAudio).where(eq(podcastAudio.episodeId, id));
@@ -132,12 +159,25 @@ episodesRouter.get('/:id', async (c) => {
   // tags
   const tagsMap = await db.select().from(episodeTagMap).where(eq(episodeTagMap.episodeId, id));
   
+  // guests
+  const epGuests = await db.select({
+    id: guests.id,
+    name: guests.name,
+    avatarUrl: guests.avatarUrl,
+    sex: guests.sex,
+    isPrimary: episodeGuestMap.isPrimary,
+  })
+  .from(episodeGuestMap)
+  .innerJoin(guests, eq(episodeGuestMap.guestId, guests.id))
+  .where(eq(episodeGuestMap.episodeId, id));
+
   return c.json({ 
     episode: ep[0],
-    transcriptLines: tl,
+    transcriptLines: mappedTl,
     podcastAudio: pa,
     mappedPolicies: policiesMap,
-    tags: tagsMap
+    tags: tagsMap,
+    guests: epGuests
   } as any, 200);
 });
 
@@ -153,6 +193,40 @@ episodesRouter.put('/:id/topics', async (c) => {
 });
 
 episodesRouter.post('/:id/sync-tags', async (c) => {
+  const db = drizzle(c.env.DB);
+  const id = c.req.param('id');
+  const body = await c.req.json();
+  const tags = body.tags || [];
+
+  // Clear existing mappings
+  await db.delete(episodeTagMap).where(eq(episodeTagMap.episodeId, id)).execute();
+
+  for (const tag of tags) {
+    if (!tag.tagName || !tag.typeName) continue;
+    
+    // UPSERT episodeTagType
+    let typeRecord = await db.select().from(episodeTagType).where(eq(episodeTagType.name, tag.typeName));
+    let typeId: number;
+    if (typeRecord.length === 0) {
+      const inserted = await db.insert(episodeTagType).values({ name: tag.typeName }).returning();
+      typeId = inserted[0].id;
+    } else {
+      typeId = typeRecord[0].id;
+    }
+
+    // UPSERT episodeTag
+    let tagRecord = await db.select().from(episodeTag).where(and(eq(episodeTag.name, tag.tagName), eq(episodeTag.typeId, typeId)));
+    let tagId: number;
+    if (tagRecord.length === 0) {
+      const inserted = await db.insert(episodeTag).values({ name: tag.tagName, typeId }).returning();
+      tagId = inserted[0].id;
+    } else {
+      tagId = tagRecord[0].id;
+    }
+
+    // Insert Map
+    await db.insert(episodeTagMap).values({ episodeId: id, tagId }).execute();
+  }
   return c.json({ success: true } as any, 200);
 });
 
@@ -185,6 +259,9 @@ episodesRouter.post('/:id/transcript', async (c) => {
       episodeId: id,
       transcriptId: transcriptId,
       speakerSource: transcript[i].speaker,
+      isHost: transcript[i].isHost ?? false,
+      isGuest: transcript[i].isGuest ?? false,
+      guestId: transcript[i].guestId || null,
       transcriptLine: transcript[i].text,
       cue: transcript[i].cue,
       lineNumber: i + 1,
@@ -195,6 +272,32 @@ episodesRouter.post('/:id/transcript', async (c) => {
 });
 
 episodesRouter.post('/:id/guests', async (c) => {
+  const db = drizzle(c.env.DB);
+  const id = c.req.param('id');
+  const body = await c.req.json();
+  
+  await db.delete(episodeGuestMap).where(eq(episodeGuestMap.episodeId, id)).execute();
+  
+  const primaryGuestIds = body.primaryGuestIds || [];
+  const backupGuestIds = body.backupGuestIds || [];
+
+  for (const gId of primaryGuestIds) {
+    await db.insert(episodeGuestMap).values({ episodeId: id, guestId: gId, isPrimary: true, isActive: true }).execute();
+  }
+  for (const gId of backupGuestIds) {
+    await db.insert(episodeGuestMap).values({ episodeId: id, guestId: gId, isPrimary: false, isActive: true }).execute();
+  }
+  
+  return c.json({ success: true } as any, 200);
+});
+
+episodesRouter.put('/:id/title', async (c) => {
+  const db = drizzle(c.env.DB);
+  const id = c.req.param('id');
+  const body = await c.req.json();
+  if (body.title) {
+    await db.update(episodes).set({ title: body.title }).where(eq(episodes.id, id)).execute();
+  }
   return c.json({ success: true } as any, 200);
 });
 
@@ -215,9 +318,30 @@ episodesRouter.post('/:id/artwork', async (c) => {
       apiToken = await c.env.CLOUDFLARE_AI_GATEWAY_TOKEN.get();
     }
 
-    // Helper function to upload to CF Images
-    const uploadToCfImages = async (imageBytes: Uint8Array, filename: string) => {
-      const blob = new Blob([new Uint8Array(imageBytes)], { type: 'image/png' });
+    // Helper function to decode base64 if needed and upload
+    const uploadToCfImages = async (imageRes: unknown, filename: string) => {
+      let binaryData: Uint8Array;
+      if (typeof imageRes === 'string') {
+        const binaryStr = atob(imageRes);
+        binaryData = new Uint8Array(binaryStr.length);
+        for (let i = 0; i < binaryStr.length; i++) {
+          binaryData[i] = binaryStr.charCodeAt(i);
+        }
+      } else if (imageRes instanceof ArrayBuffer || imageRes instanceof Uint8Array) {
+        binaryData = new Uint8Array(imageRes as ArrayBuffer);
+      } else if (imageRes instanceof ReadableStream) {
+        const streamResp = new Response(imageRes as any);
+        binaryData = new Uint8Array(await streamResp.arrayBuffer());
+      } else {
+        const fallbackBase64 = (imageRes as any)?.image || "";
+        const binaryStr = atob(fallbackBase64);
+        binaryData = new Uint8Array(binaryStr.length);
+        for (let i = 0; i < binaryStr.length; i++) {
+          binaryData[i] = binaryStr.charCodeAt(i);
+        }
+      }
+
+      const blob = new Blob([binaryData.buffer as ArrayBuffer], { type: 'image/png' });
       const cfForm = new FormData();
       cfForm.append("file", blob, filename);
 
@@ -242,15 +366,15 @@ episodesRouter.post('/:id/artwork', async (c) => {
     };
 
     // Generate & Upload Album Artwork
-    const albumRes = await c.env.AI.run('@cf/stabilityai/stable-diffusion-xl-base-1.0', {
+    const albumRes = await c.env.AI.run('@cf/bytedance/stable-diffusion-xl-lightning', {
       prompt: body.albumPrompt || 'Podcast album art, professional, abstract, vibrant colors',
-    }) as unknown as Uint8Array;
+    });
     const artworkUrl = await uploadToCfImages(albumRes, `album-${id}.png`);
     
     // Generate & Upload Cover Photo
-    const coverRes = await c.env.AI.run('@cf/stabilityai/stable-diffusion-xl-base-1.0', {
+    const coverRes = await c.env.AI.run('@cf/bytedance/stable-diffusion-xl-lightning', {
       prompt: body.coverPrompt || 'Podcast hero background cover photo, professional, cinematic',
-    }) as unknown as Uint8Array;
+    });
     const coverPhotoUrl = await uploadToCfImages(coverRes, `cover-${id}.png`);
     
     await db.update(episodes).set({
@@ -281,7 +405,44 @@ episodesRouter.get('/:id/audio-manifest', async (c) => {
 });
 
 episodesRouter.put('/:id/audio', async (c) => {
-  return c.json({ success: true } as any, 200);
+  const db = drizzle(c.env.DB);
+  const id = c.req.param('id');
+  const transcriptId = c.req.query('transcriptId') || '';
+  
+  try {
+    const arrayBuffer = await c.req.arrayBuffer();
+    if (!arrayBuffer || arrayBuffer.byteLength === 0) {
+      return c.json({ error: 'Empty audio payload' } as any, 400);
+    }
+    
+    // Generate an R2 key using the podcast-audio prefix
+    const r2Key = `podcast-audio/${id}-${Date.now()}.mp3`;
+    
+    // Upload the audio bytes to R2
+    await c.env.R2_TRUMP_POLICY.put(r2Key, arrayBuffer, {
+      httpMetadata: { contentType: 'audio/mpeg' }
+    });
+    
+    // Deactivate any existing audio records for this episode to prevent duplicates
+    await db.update(podcastAudio)
+      .set({ isActive: false })
+      .where(and(eq(podcastAudio.episodeId, id), eq(podcastAudio.isActive, true)))
+      .execute();
+
+    // Insert the new audio record into the database
+    await db.insert(podcastAudio).values({
+      episodeId: id,
+      transcriptId: transcriptId,
+      r2Key: r2Key,
+      sizeBytes: arrayBuffer.byteLength,
+      isActive: true
+    }).execute();
+    
+    return c.json({ success: true, r2Key } as any, 200);
+  } catch (err: any) {
+    console.error("Audio upload failed:", err);
+    return c.json({ error: 'Audio upload failed', details: err.message }, 500);
+  }
 });
 
 export { episodesRouter };
