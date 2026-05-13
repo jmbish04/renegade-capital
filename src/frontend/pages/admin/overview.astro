@@ -1,0 +1,88 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Activity, Gauge, FileJson, Book } from "lucide-react";
+---
+
+<BaseLayout title="Admin Overview | Renegade Capital">
+  <div className="container-wrapper py-12 px-6">
+    <div className="max-w-4xl mx-auto space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">Admin Operations</h1>
+        <p className="text-muted-foreground mt-2 text-lg">
+          Access system health, scaling metrics, and API documentation below.
+        </p>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* System Health */}
+        <a href="/health" className="block group">
+          <Card className="h-full transition-colors hover:bg-muted/50 border-border shadow-sm">
+            <CardHeader className="space-y-4">
+              <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-105 transition-transform">
+                <Activity className="size-6 text-primary" />
+              </div>
+              <div className="space-y-2">
+                <CardTitle>System Health</CardTitle>
+                <CardDescription className="text-sm leading-relaxed">
+                  Monitor the status of all core systems, databases, and third-party integrations in real-time.
+                </CardDescription>
+              </div>
+            </CardHeader>
+          </Card>
+        </a>
+
+        {/* Scaler */}
+        <a href="/scaler" target="_blank" rel="noopener noreferrer" className="block group">
+          <Card className="h-full transition-colors hover:bg-muted/50 border-border shadow-sm">
+            <CardHeader className="space-y-4">
+              <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-105 transition-transform">
+                <Gauge className="size-6 text-primary" />
+              </div>
+              <div className="space-y-2">
+                <CardTitle>Scaler</CardTitle>
+                <CardDescription className="text-sm leading-relaxed">
+                  View and manage API specifications using Scaler for interactive exploration.
+                </CardDescription>
+              </div>
+            </CardHeader>
+          </Card>
+        </a>
+
+        {/* Swagger */}
+        <a href="/swagger" target="_blank" rel="noopener noreferrer" className="block group">
+          <Card className="h-full transition-colors hover:bg-muted/50 border-border shadow-sm">
+            <CardHeader className="space-y-4">
+              <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-105 transition-transform">
+                <Book className="size-6 text-primary" />
+              </div>
+              <div className="space-y-2">
+                <CardTitle>Swagger UI</CardTitle>
+                <CardDescription className="text-sm leading-relaxed">
+                  Interactive API documentation interface with complete testing capabilities.
+                </CardDescription>
+              </div>
+            </CardHeader>
+          </Card>
+        </a>
+
+        {/* OpenAPI JSON */}
+        <a href="/openapi.json" target="_blank" rel="noopener noreferrer" className="block group">
+          <Card className="h-full transition-colors hover:bg-muted/50 border-border shadow-sm">
+            <CardHeader className="space-y-4">
+              <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-105 transition-transform">
+                <FileJson className="size-6 text-primary" />
+              </div>
+              <div className="space-y-2">
+                <CardTitle>OpenAPI Spec</CardTitle>
+                <CardDescription className="text-sm leading-relaxed">
+                  Raw JSON output of the complete OpenAPI 3.1.0 specification for this environment.
+                </CardDescription>
+              </div>
+            </CardHeader>
+          </Card>
+        </a>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

@@ -244,8 +244,6 @@ export const episodeTagMap = sqliteTable("episode_tag_map", {
   isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
 });
 
-guest
-
 /**
  * Episode notes table for contextual notes on podcast matchups
  */
@@ -423,6 +421,14 @@ export const episodeGuestMap = sqliteTable("episode_guest_map", {
   isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
 });
 
+export const episodeHostMap = sqliteTable("episode_host_map", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  episodeId: text("episode_id").notNull().references(() => episodes.id, { onDelete: "cascade" }),
+  hostId: text("host_id").notNull().references(() => hosts.id, { onDelete: "cascade" }),
+  isPrimary: integer("is_primary", { mode: "boolean" }).notNull().default(false),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+});
+
 
 /**
  * Episode Transcript Lines
@@ -432,9 +438,9 @@ export const episodeTranscriptLines = sqliteTable("episode_transcript_lines", {
   episodeId: text("episode_id").notNull().references(() => episodes.id, { onDelete: "cascade" }),
   transcriptId: text("transcript_id").notNull().default(""), // Added to group transcript versions
   lineNumber: integer("line_number").notNull(),
-  speakerSource: text("speaker_source").notNull(), // 'host' | 'guest'
   isHost: integer("is_host", { mode: "boolean" }).notNull().default(false),
-  isGuest: integer("is_guest", { mode: "boolean" }).notNull().default(false),
+  hostId: text("host_id").references(() => hosts.id, { onDelete: "set null" }),
+  isGuest: integer("is_guest", { mode: "boolean" }).notNull().default(false),  
   guestId: text("guest_id").references(() => guests.id, { onDelete: "set null" }),
   transcriptLine: text("transcript_line").notNull(),
   cue: text("cue"),

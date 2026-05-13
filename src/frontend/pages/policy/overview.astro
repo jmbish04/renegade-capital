@@ -1,0 +1,54 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { LineChart, Search } from "lucide-react";
+---
+
+<BaseLayout title="Action Alert | Renegade Capital">
+  <div className="container-wrapper py-12 px-6">
+    <div className="max-w-4xl mx-auto space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">Action Alert</h1>
+        <p className="text-muted-foreground mt-2 text-lg">
+          Dive deep into our policy coverage. Choose a dashboard below to analyze trends or review individual documents.
+        </p>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Policy Analytics */}
+        <a href="/policy/dashboard" className="block group">
+          <Card className="h-full transition-colors hover:bg-muted/50 border-border shadow-sm">
+            <CardHeader className="space-y-4">
+              <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-105 transition-transform">
+                <LineChart className="size-6 text-primary" />
+              </div>
+              <div className="space-y-2">
+                <CardTitle>Policy Analytics Dashboard</CardTitle>
+                <CardDescription className="text-sm leading-relaxed">
+                  View aggregated data, tracking metrics, and macro-level impacts of recent policy proposals.
+                </CardDescription>
+              </div>
+            </CardHeader>
+          </Card>
+        </a>
+
+        {/* Document Reader */}
+        <a href="/policy/review" className="block group">
+          <Card className="h-full transition-colors hover:bg-muted/50 border-border shadow-sm">
+            <CardHeader className="space-y-4">
+              <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-105 transition-transform">
+                <Search className="size-6 text-primary" />
+              </div>
+              <div className="space-y-2">
+                <CardTitle>Policy Document Reader</CardTitle>
+                <CardDescription className="text-sm leading-relaxed">
+                  Perform in-depth, page-by-page reviews of source texts with AI-assisted extraction and rationale.
+                </CardDescription>
+              </div>
+            </CardHeader>
+          </Card>
+        </a>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

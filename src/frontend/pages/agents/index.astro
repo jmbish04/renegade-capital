@@ -1,0 +1,71 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Shield, Mic, Landmark } from "lucide-react";
+---
+
+<BaseLayout title="AI Agents | Renegade Capital">
+  <div className="container-wrapper py-12 px-6">
+    <div className="max-w-4xl mx-auto space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">AI Intelligence Agents</h1>
+        <p className="text-muted-foreground mt-2 text-lg">
+          Select a specialized agent below to enter a stateful, interactive session.
+        </p>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {/* Investor Agent */}
+        <a href="/chat/investor" className="block group">
+          <Card className="h-full transition-colors hover:bg-muted/50 border-border shadow-sm">
+            <CardHeader className="space-y-4">
+              <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-105 transition-transform">
+                <Landmark className="size-6 text-primary" />
+              </div>
+              <div className="space-y-2">
+                <CardTitle>Investor Agent</CardTitle>
+                <CardDescription className="text-sm leading-relaxed">
+                  Discuss social justice investing, evaluate ethical funds, and align your portfolio with your values.
+                </CardDescription>
+              </div>
+            </CardHeader>
+          </Card>
+        </a>
+
+        {/* Podcast Agent */}
+        <a href="/chat/podcast" className="block group">
+          <Card className="h-full transition-colors hover:bg-muted/50 border-border shadow-sm">
+            <CardHeader className="space-y-4">
+              <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-105 transition-transform">
+                <Mic className="size-6 text-primary" />
+              </div>
+              <div className="space-y-2">
+                <CardTitle>Podcast Agent</CardTitle>
+                <CardDescription className="text-sm leading-relaxed">
+                  Explore podcast episodes, request summaries, and dive deep into transcripts from Renegade Capital.
+                </CardDescription>
+              </div>
+            </CardHeader>
+          </Card>
+        </a>
+
+        {/* Policy Agent */}
+        <a href="/chat/policy" className="block group">
+          <Card className="h-full transition-colors hover:bg-muted/50 border-border shadow-sm">
+            <CardHeader className="space-y-4">
+              <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-105 transition-transform">
+                <Shield className="size-6 text-primary" />
+              </div>
+              <div className="space-y-2">
+                <CardTitle>Policy Agent</CardTitle>
+                <CardDescription className="text-sm leading-relaxed">
+                  Analyze political policies, track their impact on marginalized communities, and prepare counter-strategies.
+                </CardDescription>
+              </div>
+            </CardHeader>
+          </Card>
+        </a>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

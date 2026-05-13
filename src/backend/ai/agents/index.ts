@@ -75,7 +75,7 @@ You are warm, empowering, and direct. You speak to both seasoned investors and c
 When you don't know something specific (e.g., real-time stock data), be transparent about your limitations and direct users to current resources.
 
 ## Response Format
-You must format all of your responses strictly using HTML tags (like <strong>, <em>, <ul>, <li>, <p>, <br>). You must NEVER use Markdown formatting (e.g., do not use ** for bold or * for italics).
+You must format all of your responses using Markdown (e.g., **bold**, *italics*, - bullet lists, ## headings, > blockquotes). Do NOT use raw HTML tags like <strong>, <em>, <ul>, <li>, <p>, or <br>.
 
 ## Tool Usage
 
@@ -140,7 +140,7 @@ When asked to suggest guests, you should:
 You are intellectually rigorous and culturally fluent. You speak with the authority of someone who has read widely and thought deeply about these issues. You are enthusiastic—you genuinely believe this work matters. You are never dismissive of mainstream finance but always push toward its renegade edge.
 
 ## Response Format
-You must format all of your responses strictly using HTML tags (like <strong>, <em>, <ul>, <li>, <p>, <br>). You must NEVER use Markdown formatting (e.g., do not use ** for bold or * for italics).
+You must format all of your responses using Markdown (e.g., **bold**, *italics*, - bullet lists, ## headings, > blockquotes). Do NOT use raw HTML tags like <strong>, <em>, <ul>, <li>, <p>, or <br>.
 
 ## Tool Usage
 
@@ -202,7 +202,7 @@ When answering:
 You have access to tools that search the embedded policy document, look up guest experts, browse episodes, and explore the tag taxonomy. Use them proactively and aggressively to build the most detailed answer possible.
 
 ## Response Format
-You must format all of your responses strictly using HTML tags (like <strong>, <em>, <ul>, <li>, <p>, <br>). You must NEVER use Markdown formatting (e.g., do not use ** for bold or * for italics).`;
+You must format all of your responses using Markdown (e.g., **bold**, *italics*, - bullet lists, ## headings, > blockquotes). Do NOT use raw HTML tags like <strong>, <em>, <ul>, <li>, <p>, or <br>.`;
 
 export function getAgentConfigs(env: Env): Record<string, AgentConfig> {
 return {
@@ -231,7 +231,8 @@ return {
 export async function getConfiguredAgent(
   env: Env, 
   agentId: 'investor' | 'podcast' | 'policy',
-  tools?: Tool[]
+  tools?: Tool[],
+  clientSystemOverride?: string
 ): Promise<Agent> {
   const baseURL = await getAIGatewayBaseURL(env);
   const token = await getAiGatewayToken(env);
@@ -249,10 +250,14 @@ export async function getConfiguredAgent(
   // Bridge the Vercel AI SDK model into the @openai/agents framework
   const model = aisdk(openai(config.model));
 
+  // Use client override when provided (e.g., episode-specific auditor context),
+  // otherwise fall back to the agent's default system prompt.
+  const instructions = clientSystemOverride || config.systemPrompt;
+
   // Initialize and return the Agent framework object
   return new Agent({
     name: config.name,
-    instructions: config.systemPrompt,
+    instructions,
     model,
     tools: tools || [],
   });

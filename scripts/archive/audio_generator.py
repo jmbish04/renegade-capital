@@ -5,7 +5,6 @@ audio_generator.py — Multi-voice Podcast Generator using Cloudflare Workers AI
 
 import os
 import sys
-import uuid
 import json
 import time
 import requests
@@ -121,9 +120,9 @@ class GuestSelectionOutput(BaseModel):
     selected_guests: list[str] = Field(..., description="List of exact guest names chosen for the episode (min 1, max 4)")
     reasoning: str = Field(..., description="Brief reasoning for why these guests were selected based on the topic")
 
-# UPDATED: Enforce 3-5 word titles
 class TitleOptimizationOutput(BaseModel):
-    optimized_title: str = Field(..., description="A punchy title exactly 3 to 5 words maximum.")
+    is_appropriate: bool = Field(..., description="True if the title is strictly 5-7 words, catchy, and appropriate for Apple Podcasts.")
+    optimized_title: str = Field(..., description="If is_appropriate is False, provide a new title strictly 5-7 words maximum.")
 
 class TopicsOutput(BaseModel):
     social_justice_investment_topics: str = Field(..., description="Generated social justice investment topics and context.")
@@ -343,13 +342,13 @@ def generate_transcript_and_artwork(episode_id: str, cf_token: str, cf_account: 
                 print("Checking/optimizing episode title...")
                 title_prompt = f"""
                 The current episode title is too long ({word_count} words). It needs to sound like normal human language and something someone would click on from Apple Podcasts.
-                Rewrite it to be exactly 3 to 5 words maximum.
+                Rewrite it to be exactly 5 to 7 words maximum.
                 
                 Current Title: "{title}"
                 Description: {desc}
                 """
                 title_dict = run_ai_task(title_prompt, "Optimize this title.", TitleOptimizationOutput, cf_token, cf_account)
-                if True: # Always use the optimized title
+                if not title_dict.get("is_appropriate", True):
                     new_title = title_dict.get("optimized_title", title)
                     if new_title and new_title != title:
                         print(f"✅ AI optimized title: '{new_title}'")
@@ -528,21 +527,34 @@ def generate_transcript_and_artwork(episode_id: str, cf_token: str, cf_account: 
             {json.dumps([{"id": h.get("id"), "name": h.get("name")} for h in hosts])}
 
             CRITICAL STRUCTURAL REQUIREMENTS:
-            Write a podcast transcript targeting 'Cultured Intellectuals'.
-            Use peer-level language and natural verbal fillers (e.g., "Exactly," "Right," "Let's pivot").
-            
             You must follow this exact rigid structure for the podcast transcript:
             
-            1. INTRO: Andrea introduces guests. THANK A FAKE SPONSOR: 'The Constitutional Hemorrhoid Cream'.
-            2. PASSION CHECK: Guests highlight AI's role in financial social justice.
-            3. THE CORE: 2 main discussion topics. INSERT A MID-ROLL SPONSOR BREAK where Andrea 
-               reads a ridiculous script for an absurd product and talks about how much she uses it.
-            4. POLICY REVIEW: Transition with "It's time for our standing Trump AI Policy Review" 
-               to audit these specific pages: {policy_rationales}.
-            5. ACTION ITEMS: Specific investment opportunities or social justice movements.
-            
-            Andrea is witty and direct. Use her sign-off: "Invest in justice, or the algorithms win."
-            Include an explicit cue indicating a fade out to a musical soundtrack at the very end.
+            1. INTRO SEGMENT:
+               - Andrea Longton introduces the guests and their backgrounds, immediately drawing the connection to her social justice investor mission.
+               - Incorporate the specific "Social Justice Investment Topics" and "AI & Social Justice Topics" provided above to build this connection.
+               - IMPORTANT: Andrea should NEVER say "the title of this podcast is..." The intro must sound completely natural and organic.
+               - For EACH guest:
+                 * Andrea tees up the guest by briefly describing the overlap area (the center of the Venn diagram) between their expertise and social justice investing.
+                 * The guest briefly discusses their side of the overlap and reiterates their alignment with social justice.
+                 * Andrea summarizes the center of that Venn diagram in simpler words, highlighting how important it is to partner on this shared commonality.
+
+            2. MAIN CONTENT SEGMENT:
+               - Dive deep into the shared mission between social justice investing and AI social justice.
+               - The conversation must be meaningful, deep, and organic. 
+               - The flow should include Andrea talking to guests, guests asking each other questions, expanding on topics, and overlapping discussions.
+               - Andrea should occasionally jump in during guest-to-guest dialogue to draw attention back to social justice investing.
+
+            3. TRUMP AI POLICY SEGMENT:
+               - Andrea must end the main segment by transitioning into a brief intro about Trump AI Policy.
+               - She should explain why it is crucial to pay attention and push back.
+               - She must summarize the specific AI policies that overlap with the podcast topic and guest bios.
+               - The guests must then discuss this Trump AI policy, explicitly addressing the risks it poses to the core mission of social justice (e.g., fixing inequalities).
+
+            4. CONCLUSION & CALL-TO-ACTION:
+               - Andrea must conclude with explicit action items for listeners: e.g., buy the guest's book, sign up for their podcast, or join movements organized against the discussed Trump AI policies by the social justice coalition.
+               - Andrea says goodbye and thanks her guests.
+               - Andrea must use a witty, catchy sign-off slogan (do NOT use basic phrases like "until next time team social justice out"). She is witty as fuck.
+               - Include an explicit cue indicating a fade out to a musical soundtrack at the very end.
             """
             
             report.add_info("Running AI transcript generation...")
@@ -621,12 +633,10 @@ def process_episode(episode_id: str, cf_token: str, cf_account: str, worker_url:
             print(f"No active transcript lines for episode {episode_id}. Cannot generate audio.")
             return
             
-        original_transcript_id = active_lines[0].get("transcriptId")
-        transcript_id = original_transcript_id
+        transcript_id = active_lines[0].get("transcriptId")
         if not transcript_id:
-            # Legacy transcripts may lack a transcriptId — generate a fallback UUID for the audio record
-            transcript_id = str(uuid.uuid4())
-            print(f"⚠️  Transcript for episode {episode_id} has empty transcriptId. Using generated ID: {transcript_id}")
+            print(f"Active transcript for episode {episode_id} missing transcriptId. Skipping.")
+            return
             
         podcast_audio = episode_data.get("podcastAudio", [])
         active_audio = [pa for pa in podcast_audio if pa.get("isActive", True) in (1, True, "1", "true")]
@@ -640,11 +650,8 @@ def process_episode(episode_id: str, cf_token: str, cf_account: str, worker_url:
         return
 
     print(f"Fetching audio manifest for episode {episode_id}...")
-    # Only pass transcriptId filter if it was real (not generated)
-    if original_transcript_id:
-        manifest_url = f"{worker_url}/api/episodes/{episode_id}/audio-manifest?transcriptId={transcript_id}"
-    else:
-        manifest_url = f"{worker_url}/api/episodes/{episode_id}/audio-manifest"
+    # Provide transcriptId query param or filter locally
+    manifest_url = f"{worker_url}/api/episodes/{episode_id}/audio-manifest?transcriptId={transcript_id}"
     try:
         resp = requests.get(manifest_url, timeout=10)
         resp.raise_for_status()

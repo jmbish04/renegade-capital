@@ -369,7 +369,7 @@ class TranscriptOutput(BaseModel):
 # ─── Main Pipeline Execution ─────────────────────────────────────────────────────
 
 def main():
-    log("Starting Relational Policy Ingestion Pipeline...")
+    log("Starting Renegade Capital Global Pipeline...")
     
     if not CF_API_TOKEN or not CF_ACCOUNT_ID:
         log("ERROR: Missing Cloudflare credentials.", "ERROR")
@@ -435,15 +435,6 @@ def main():
                 "overallRationale": scoring_dict.get("overall_rationale"),
             }
             
-            # Explicitly format tags for relational insert
-            mapped_tags = []
-            for t in analysis_dict.get("tags", []):
-                mapped_tags.append({
-                    "tagName": t.get("name"),
-                    "tagType": t.get("type"),
-                    "rationale": t.get("rationale")
-                })
-            
             payload = {
                 "uuid": page_uuid,
                 "pageNum": page["page_num"],
@@ -456,7 +447,7 @@ def main():
                 "aiOrganizeTech": analysis_dict.get("organize_tech"),
                 "aiOrganizeFinance": analysis_dict.get("organize_finance"),
                 "policyScoring": scoring_mapped,
-                "tags": mapped_tags # Use hardened explicit tags
+                "tags": analysis_dict.get("tags", [])
             }
             
             resp = worker_api("POST", "/api/policy/pages", payload)
@@ -480,16 +471,8 @@ def main():
                 "tags": analysis_dict.get("tags", [])
             })
             
-        except requests.exceptions.HTTPError as e:
-            # Log the actual response body for 500 errors
-            resp_body = ""
-            try:
-                resp_body = e.response.text[:500] if e.response else "No response"
-            except:
-                resp_body = "Could not read response"
-            log(f"  Error on page {page['page_num']}: {e} | Body: {resp_body}", "ERROR")
         except Exception as e:
-            log(f"  Error on page {page['page_num']}: {type(e).__name__}: {e}", "ERROR")
+            log(f"  Error on page {page['page_num']}: {e}", "ERROR")
 
     if not processed_pages:
         log("No pages processed successfully. Exiting.")

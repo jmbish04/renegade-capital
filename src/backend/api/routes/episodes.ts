@@ -1,9 +1,9 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql, isNotNull, ne, asc } from 'drizzle-orm';
 import { 
   episodes, episodeTranscriptLines, episodeTagMap, episodeTag, episodeTagType,
-  trumpPolicyPageEpisodeMap, trumpPolicyPage, episodeGuestMap, guests, podcastAudio
+  trumpPolicyPageEpisodeMap, trumpPolicyPage, episodeGuestMap, episodeHostMap, guests, podcastAudio, hosts, episodeNotes
 } from '../../db/schema';
 import type { Bindings } from '../index';
 
@@ -83,6 +83,28 @@ episodesRouter.get('/', async (c) => {
   // Fetch active tags
   const activeTags = await db.select().from(episodeTag).where(eq(episodeTag.isActive, true));
   
+  // Fetch active guests
+  const activeGuestMaps = await db.select({
+    episodeId: episodeGuestMap.episodeId,
+    guestId: guests.id,
+    name: guests.name,
+    headshotUrl: guests.headshotUrl,
+    isPrimary: episodeGuestMap.isPrimary,
+  }).from(episodeGuestMap)
+    .innerJoin(guests, eq(episodeGuestMap.guestId, guests.id))
+    .where(eq(episodeGuestMap.isActive, true));
+
+  // Fetch active hosts
+  const activeHostMaps = await db.select({
+    episodeId: episodeHostMap.episodeId,
+    hostId: hosts.id,
+    name: hosts.name,
+    headshotUrl: hosts.headshotUrl,
+    isPrimary: episodeHostMap.isPrimary,
+  }).from(episodeHostMap)
+    .innerJoin(hosts, eq(episodeHostMap.hostId, hosts.id))
+    .where(eq(episodeHostMap.isActive, true));
+  
   // Create a map from tagId to tag name
   const tagIdToName: Record<number, string> = {};
   activeTags.forEach(t => tagIdToName[t.id] = t.name);
@@ -98,10 +120,24 @@ episodesRouter.get('/', async (c) => {
     }
   });
   
-  // Attach tags to episodes
+  const episodeIdToGuests: Record<string, any[]> = {};
+  activeGuestMaps.forEach(gm => {
+    if (!episodeIdToGuests[gm.episodeId]) episodeIdToGuests[gm.episodeId] = [];
+    episodeIdToGuests[gm.episodeId].push(gm);
+  });
+
+  const episodeIdToHosts: Record<string, any[]> = {};
+  activeHostMaps.forEach(hm => {
+    if (!episodeIdToHosts[hm.episodeId]) episodeIdToHosts[hm.episodeId] = [];
+    episodeIdToHosts[hm.episodeId].push(hm);
+  });
+  
+  // Attach tags, guests, hosts to episodes
   const result = activeEpisodes.map(ep => ({
     ...ep,
-    tags: episodeIdToTags[ep.id] || []
+    tags: episodeIdToTags[ep.id] || [],
+    guests: episodeIdToGuests[ep.id] || [],
+    hosts: episodeIdToHosts[ep.id] || []
   }));
   
   // Sort by created at descending
@@ -125,36 +161,58 @@ episodesRouter.get('/:id', async (c) => {
     episodeId: episodeTranscriptLines.episodeId,
     transcriptId: episodeTranscriptLines.transcriptId,
     lineNumber: episodeTranscriptLines.lineNumber,
-    speakerSource: episodeTranscriptLines.speakerSource,
     isHost: episodeTranscriptLines.isHost,
     isGuest: episodeTranscriptLines.isGuest,
+    hostId: episodeTranscriptLines.hostId,
     guestId: episodeTranscriptLines.guestId,
     transcriptLine: episodeTranscriptLines.transcriptLine,
     cue: episodeTranscriptLines.cue,
     createdAt: episodeTranscriptLines.createdAt,
     isActive: episodeTranscriptLines.isActive,
-    guestName: guests.name
+    guestName: guests.name,
+    hostName: hosts.name
   })
   .from(episodeTranscriptLines)
   .leftJoin(guests, eq(episodeTranscriptLines.guestId, guests.id))
-  .where(eq(episodeTranscriptLines.episodeId, id));
+  .leftJoin(hosts, eq(episodeTranscriptLines.hostId, hosts.id))
+  .where(
+    and(
+      eq(episodeTranscriptLines.episodeId, id),
+      eq(episodeTranscriptLines.isActive, true),
+      isNotNull(episodeTranscriptLines.transcriptId),
+      ne(episodeTranscriptLines.transcriptId, "")
+    )
+  )
+  .orderBy(asc(episodeTranscriptLines.lineNumber));
 
   const mappedTl = tl.map(line => {
     let finalSpeakerName = "ERROR";
     if (line.guestName) {
       finalSpeakerName = line.guestName;
-    } else if (line.speakerSource) {
-      finalSpeakerName = line.speakerSource;
+    } else if (line.hostName) {
+      finalSpeakerName = line.hostName;
     }
     return { ...line, speakerSource: finalSpeakerName };
   });
   
   // Audio
-  const pa = await db.select().from(podcastAudio).where(eq(podcastAudio.episodeId, id));
+  const pa = await db.select().from(podcastAudio).where(and(eq(podcastAudio.episodeId, id), eq(podcastAudio.isActive, true)));
   
-  // mappedPolicies
-  const policiesMap = await db.select().from(trumpPolicyPageEpisodeMap).where(eq(trumpPolicyPageEpisodeMap.episodeId, id));
-  const policyPages = policiesMap.length ? await db.select().from(trumpPolicyPage) : []; // simplification
+  // mappedPolicies — JOIN with page content so frontend has everything it needs
+  const policiesMap = await db.select({
+    id: trumpPolicyPageEpisodeMap.id,
+    pageId: trumpPolicyPageEpisodeMap.pageId,
+    episodeId: trumpPolicyPageEpisodeMap.episodeId,
+    source: trumpPolicyPageEpisodeMap.source,
+    aiRationale: trumpPolicyPageEpisodeMap.aiRationale,
+    pageNum: trumpPolicyPage.pageNum,
+    pageContent: trumpPolicyPage.pageContent,
+    aiSummary: trumpPolicyPage.aiSummary,
+    pageImageUrl: trumpPolicyPage.pageImageUrl,
+  })
+  .from(trumpPolicyPageEpisodeMap)
+  .innerJoin(trumpPolicyPage, eq(trumpPolicyPageEpisodeMap.pageId, trumpPolicyPage.id))
+  .where(eq(trumpPolicyPageEpisodeMap.episodeId, id));
 
   // tags
   const tagsMap = await db.select().from(episodeTagMap).where(eq(episodeTagMap.episodeId, id));
@@ -163,13 +221,41 @@ episodesRouter.get('/:id', async (c) => {
   const epGuests = await db.select({
     id: guests.id,
     name: guests.name,
-    avatarUrl: guests.avatarUrl,
+    headshotUrl: guests.headshotUrl,
     sex: guests.sex,
+    personaDescription: guests.personaDescription,
+    expertise: guests.expertise,
+    tone: guests.tone,
+    background: guests.background,
+    chemistry: guests.chemistry,
+    domain: guests.domain,
+    affiliation: guests.affiliation,
+    podcastFitRationale: guests.podcastFitRationale,
     isPrimary: episodeGuestMap.isPrimary,
   })
   .from(episodeGuestMap)
   .innerJoin(guests, eq(episodeGuestMap.guestId, guests.id))
   .where(eq(episodeGuestMap.episodeId, id));
+
+  // hosts
+  const epHosts = await db.select({
+    id: hosts.id,
+    name: hosts.name,
+    headshotUrl: hosts.headshotUrl,
+    sex: hosts.sex,
+    personaDescription: hosts.personaDescription,
+    expertise: hosts.expertise,
+    tone: hosts.tone,
+    background: hosts.background,
+    chemistry: hosts.chemistry,
+    domain: hosts.domain,
+    affiliation: hosts.affiliation,
+    podcastFitRationale: hosts.podcastFitRationale,
+    isPrimary: episodeHostMap.isPrimary,
+  })
+  .from(episodeHostMap)
+  .innerJoin(hosts, eq(episodeHostMap.hostId, hosts.id))
+  .where(eq(episodeHostMap.episodeId, id));
 
   return c.json({ 
     episode: ep[0],
@@ -177,7 +263,8 @@ episodesRouter.get('/:id', async (c) => {
     podcastAudio: pa,
     mappedPolicies: policiesMap,
     tags: tagsMap,
-    guests: epGuests
+    guests: epGuests,
+    hosts: epHosts
   } as any, 200);
 });
 
@@ -258,9 +345,9 @@ episodesRouter.post('/:id/transcript', async (c) => {
     await db.insert(episodeTranscriptLines).values({
       episodeId: id,
       transcriptId: transcriptId,
-      speakerSource: transcript[i].speaker,
       isHost: transcript[i].isHost ?? false,
       isGuest: transcript[i].isGuest ?? false,
+      hostId: transcript[i].hostId || null,
       guestId: transcript[i].guestId || null,
       transcriptLine: transcript[i].text,
       cue: transcript[i].cue,
@@ -443,6 +530,116 @@ episodesRouter.put('/:id/audio', async (c) => {
     console.error("Audio upload failed:", err);
     return c.json({ error: 'Audio upload failed', details: err.message }, 500);
   }
+});
+
+// ─── Audio Streaming ───────────────────────────────────────────────────────────
+
+/**
+ * GET /api/episodes/:id/audio/stream
+ * Streams the active podcast audio MP3 from R2.
+ */
+episodesRouter.get('/:id/audio/stream', async (c) => {
+  const db = drizzle(c.env.DB);
+  const id = c.req.param('id');
+
+  const transcriptId = c.req.query('transcriptId');
+
+  const conditions = [
+    eq(podcastAudio.episodeId, id),
+    eq(podcastAudio.isActive, true)
+  ];
+
+  if (transcriptId) {
+    conditions.push(eq(podcastAudio.transcriptId, transcriptId));
+  }
+
+  const audioRecord = await db.select()
+    .from(podcastAudio)
+    .where(and(...conditions))
+    .limit(1);
+
+  if (!audioRecord.length || !audioRecord[0].r2Key) {
+    return c.json({ error: 'No audio available for this episode' } as any, 404);
+  }
+
+  const r2Object = await c.env.R2_TRUMP_POLICY.get(audioRecord[0].r2Key);
+  if (!r2Object) {
+    return c.json({ error: 'Audio file not found in storage' } as any, 404);
+  }
+
+  const headers = new Headers();
+  headers.set('Content-Type', 'audio/mpeg');
+  headers.set('Accept-Ranges', 'bytes');
+  if (r2Object.size) headers.set('Content-Length', String(r2Object.size));
+  headers.set('Cache-Control', 'public, max-age=86400');
+
+  return new Response(r2Object.body as any, { status: 200, headers });
+});
+
+// ─── Episode Notes CRUD ────────────────────────────────────────────────────────
+
+/**
+ * GET /api/episodes/:id/notes
+ * Lists all active notes for an episode.
+ */
+episodesRouter.get('/:id/notes', async (c) => {
+  const db = drizzle(c.env.DB);
+  const id = c.req.param('id');
+  const allNotes = await db.select()
+    .from(episodeNotes)
+    .where(and(eq(episodeNotes.episodeId, id), eq(episodeNotes.isActive, true)))
+    .orderBy(episodeNotes.createdAt);
+  return c.json({ notes: allNotes } as any, 200);
+});
+
+/**
+ * POST /api/episodes/:id/notes
+ * Creates a new note for an episode.
+ */
+episodesRouter.post('/:id/notes', async (c) => {
+  const db = drizzle(c.env.DB);
+  const id = c.req.param('id');
+  const body = await c.req.json();
+  const content = body?.content;
+  if (!content || typeof content !== 'string' || !content.trim()) {
+    return c.json({ error: 'Note content is required' } as any, 400);
+  }
+  const result = await db.insert(episodeNotes).values({
+    episodeId: id,
+    content: content.trim(),
+  }).returning({ id: episodeNotes.id });
+  return c.json({ success: true, id: result[0].id } as any, 201);
+});
+
+/**
+ * PUT /api/episodes/:id/notes/:noteId
+ * Updates an existing note (creates a new version, deactivates old).
+ */
+episodesRouter.put('/:id/notes/:noteId', async (c) => {
+  const db = drizzle(c.env.DB);
+  const noteId = parseInt(c.req.param('noteId'), 10);
+  const body = await c.req.json();
+  const content = body?.content;
+  if (!content || typeof content !== 'string' || !content.trim()) {
+    return c.json({ error: 'Note content is required' } as any, 400);
+  }
+  await db.update(episodeNotes)
+    .set({ content: content.trim(), updatedAt: sql`(unixepoch())` })
+    .where(eq(episodeNotes.id, noteId));
+  return c.json({ success: true } as any, 200);
+});
+
+/**
+ * DELETE /api/episodes/:id/notes/:noteId
+ * Soft-deletes a note by marking it inactive.
+ */
+episodesRouter.delete('/:id/notes/:noteId', async (c) => {
+  const db = drizzle(c.env.DB);
+  const noteId = parseInt(c.req.param('noteId'), 10);
+  await db.update(episodeNotes)
+    .set({ isActive: false })
+    .where(eq(episodeNotes.id, noteId));
+  return c.json({ success: true } as any, 200);
 });
 
 export { episodesRouter };

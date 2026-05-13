@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   AssistantRuntimeProvider,
   ThreadPrimitive,
@@ -56,6 +56,28 @@ import { teamMembers } from "@/components/TeamCarousel";
 
 const RC_LOGO =
   "https://images.squarespace-cdn.com/content/v1/682230d9918bf67071aafaab/26bed561-51cd-46da-a999-c1c0a599a7fe/RC_Icon.png";
+
+/**
+ * Lightweight markdown-to-JSX renderer for transcript lines.
+ * Handles **bold**, *italic*, `code`, and line breaks.
+ */
+function renderMarkdown(text: string): React.ReactNode {
+  if (!text) return null;
+  // Split into segments using a regex that captures bold, italic, and code
+  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i} className="font-semibold">{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith('*') && part.endsWith('*')) {
+      return <em key={i}>{part.slice(1, -1)}</em>;
+    }
+    if (part.startsWith('`') && part.endsWith('`')) {
+      return <code key={i} className="px-1 py-0.5 bg-muted rounded text-xs font-mono">{part.slice(1, -1)}</code>;
+    }
+    return part;
+  });
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -396,14 +418,51 @@ export function EpisodeDetailIsland() {
       });
   }, [episodeId]);
 
+  const transcriptText = useMemo(() => {
+    if (!episodeData?.transcript) return "";
+    return episodeData.transcript.map((line: any) => {
+      let speaker = line.speakerSource || "Speaker";
+      if (line.isHost && line.hostId) {
+        const h = episodeData.hosts?.find((h: any) => h.id === line.hostId);
+        if (h) speaker = h.name;
+      } else if (line.isGuest && line.guestId) {
+        const g = episodeData.guests?.find((g: any) => g.id === line.guestId);
+        if (g) speaker = g.name;
+      }
+      return `[${line.timestampStart || ''}] ${speaker}: ${line.transcriptLine}`;
+    }).join('\n');
+  }, [episodeData]);
+
   const runtime = useChatRuntime({
     transport: new AssistantChatTransport({
       api: "/api/chat/podcast",
       body: {
         episodeId: episodeId,
-        systemPrompt: episodeData?.episode
-          ? `You are the Renegade Podcast Auditor for Episode "${episodeData.episode.title}". You help users understand this specific episode — its transcript, guests, policy connections, and strategic implications. The episode ID is ${episodeId}. Format responses in HTML.`
-          : "You are the Renegade Podcast Auditor. You help users understand podcast episodes — transcripts, guests, policy connections, and strategic implications. Format responses in HTML.",
+        system: episodeData?.episode
+          ? `You are the Renegade Podcast Auditor for Episode "${episodeData.episode.title}". You help users understand this specific episode — its transcript, guests, policy connections, and strategic implications. The episode ID is ${episodeId}.
+
+## EPISODE METADATA
+Title: ${episodeData.episode.title}
+Description: ${episodeData.episode.description || 'N/A'}
+Status: ${episodeData.episode.status}
+
+## HOSTS
+${(episodeData.hosts || []).map((h: any) => `- ${h.name} - ${h.role}`).join('\n')}
+
+## GUESTS
+${(episodeData.guests || []).map((g: any) => `- ${g.name} (${g.affiliation || 'No affiliation'}) - ${g.personaDescription}`).join('\n')}
+
+## TAGS
+${(episodeData.tags || []).map((t: any) => `- ${t.tag?.name || 'Unknown Tag'}`).join('\n')}
+
+## EPISODE NOTES
+${(episodeData.notes || []).map((n: any) => `- [${n.timestamp}] ${n.noteText}`).join('\n')}
+
+## FULL TRANSCRIPT
+${transcriptText}
+
+Format responses in Markdown. Use **bold**, *italics*, lists, and headings for structure. Never use raw HTML tags.`
+          : "You are the Renegade Podcast Auditor. You help users understand podcast episodes — transcripts, guests, policy connections, and strategic implications. Format responses in Markdown. Use **bold**, *italics*, lists, and headings for structure. Never use raw HTML tags.",
       },
     }),
   });
@@ -455,17 +514,7 @@ export function EpisodeDetailIsland() {
   return (
     <AssistantRuntimeProvider runtime={runtime}>
       <div className="flex flex-col w-full relative">
-        {/* Seamless Hero Background */}
-        {episode.coverPhotoUrl && (
-          <div 
-            className="w-full h-64 md:h-80 lg:h-96 bg-cover bg-center bg-no-repeat relative -mt-[var(--header-height)]"
-            style={{ backgroundImage: `url(${episode.coverPhotoUrl})` }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-background/10" />
-          </div>
-        )}
-        
-        <div className={`flex flex-col lg:flex-row min-h-[calc(100svh-var(--header-height))] w-full relative z-10 ${episode.coverPhotoUrl ? 'lg:-mt-48 -mt-24' : ''}`}>
+        <div className="flex flex-col lg:flex-row min-h-[calc(100svh-var(--header-height))] w-full relative z-10">
           {/* ─── Left Column: Sticky Metadata ──────────────────────────── */}
           <aside className="lg:w-[360px] lg:shrink-0 border-b lg:border-b-0 lg:border-r border-border lg:sticky lg:top-[var(--header-height)] lg:h-[calc(100svh-var(--header-height))] lg:overflow-y-auto bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="p-6 space-y-6">
@@ -494,7 +543,11 @@ export function EpisodeDetailIsland() {
               <audio
                 controls
                 className="w-full h-10 rounded-md"
-                src={`/api/episodes/${episode.id}/audio/stream`}
+                src={`/api/episodes/${episode.id}/audio/stream${
+                  episodeData.transcriptLines?.[0]?.transcriptId
+                    ? `?transcriptId=${episodeData.transcriptLines[0].transcriptId}`
+                    : ''
+                }`}
               >
                 Your browser does not support audio playback.
               </audio>
@@ -516,10 +569,10 @@ export function EpisodeDetailIsland() {
               let activeHost = teamMembers[0]; // Default to Andrea Longton
               if (episodeData.transcriptLines && episodeData.transcriptLines.length > 0) {
                 const hostLine = episodeData.transcriptLines.find((l: any) => l.isHost);
-                if (hostLine && hostLine.speakerSource) {
+                if (hostLine && hostLine.hostName) {
                   const found = teamMembers.find(tm => 
-                    tm.name.toLowerCase().includes(hostLine.speakerSource.toLowerCase()) ||
-                    hostLine.speakerSource.toLowerCase().includes(tm.name.toLowerCase().split(' ')[0])
+                    tm.name.toLowerCase().includes(hostLine.hostName.toLowerCase()) ||
+                    hostLine.hostName.toLowerCase().includes(tm.name.toLowerCase().split(' ')[0])
                   );
                   if (found) activeHost = found;
                 }
@@ -598,8 +651,8 @@ export function EpisodeDetailIsland() {
                   <div className="max-w-3xl mx-auto p-6 space-y-8">
                     {episodeData.transcriptLines.map((line: any) => {
                       const speakerGuest = parsedGuests.find((g: any) => g.id === line.guestId);
-                      const isHost = line.isHost || line.speakerSource?.toLowerCase() === 'andrea longton' || line.speakerSource?.toLowerCase() === 'host';
-                      const speakerName = line.speakerSource || (speakerGuest ? speakerGuest.name : 'Unknown');
+                      const isHost = line.isHost;
+                      const speakerName = isHost ? (line.hostName || 'Host') : (line.guestName || (speakerGuest ? speakerGuest.name : 'Unknown'));
                       const hostImage = isHost ? (hostImages[speakerName.toLowerCase()] || hostImages["host"]) : undefined;
 
                       return (
@@ -614,7 +667,7 @@ export function EpisodeDetailIsland() {
                                {line.cue && <span className="text-xs text-muted-foreground">{line.cue}</span>}
                             </div>
                             <div className={`p-4 rounded-xl max-w-2xl text-sm leading-relaxed ${isHost ? 'bg-muted text-foreground rounded-tl-sm' : 'bg-primary/10 text-foreground border border-primary/20 rounded-tr-sm'}`}>
-                              {line.transcriptLine}
+                              {renderMarkdown(line.transcriptLine)}
                             </div>
                           </div>
                         </div>

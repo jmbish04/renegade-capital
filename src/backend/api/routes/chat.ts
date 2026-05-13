@@ -346,7 +346,7 @@ chatRouter.openapi(investorRoute, async (c) => {
         questionFlowTool,
         renderChartTool,
         renderDataTableTool,
-      ]);
+      ], clientSystem);
 
       const messages = incomingMessages.map((m: any) => ({
         role: m.role as "user" | "assistant" | "system",
@@ -407,7 +407,8 @@ chatRouter.openapi(podcastRoute, async (c) => {
     const rawBody = await c.req.json().catch(() => ({}));
     const validated = c.req.valid('json') as any;
     const incomingMessages = validated?.messages || rawBody?.messages || [];
-    const clientSystem = validated?.system || rawBody?.system;
+    // The frontend sends episode-specific context as `systemPrompt` in the body
+    const clientSystem = validated?.system || rawBody?.system || rawBody?.systemPrompt;
 
     try {
       const guestTools = createGuestTools(c.env);
@@ -417,7 +418,7 @@ chatRouter.openapi(podcastRoute, async (c) => {
         guestTools.getAllGuestsTool,
         guestTools.findGuestByAttributeTool,
         guestTools.pairGuestsTool,
-      ]);
+      ], clientSystem);
 
       const messages = incomingMessages.map((m: any) => ({
         role: m.role as "user" | "assistant" | "system",
@@ -493,7 +494,7 @@ chatRouter.openapi(policyRoute, async (c) => {
         createSearchGuestsTool(c.env as any),
         createSearchEpisodesTool(c.env as any),
         createGetTagHierarchyTool(c.env as any),
-      ]);
+      ], clientSystem);
 
       const messages = incomingMessages.map((m: any) => ({
         role: m.role as "user" | "assistant" | "system",

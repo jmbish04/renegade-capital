@@ -91,7 +91,7 @@ export async function checkHealth(env: Env): Promise<HealthStepResult> {
         "messages",
         "health_runs",
         "health_results",
-        "trump_policy_page",
+        "trump_policy_pages",
       ];
       const missing = critical.filter((t) => !tables.includes(t));
       if (missing.length > 0) {

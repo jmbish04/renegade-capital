@@ -235,7 +235,8 @@ return {
 export async function getConfiguredAgent(
   env: Env, 
   agentId: 'investor' | 'podcast' | 'policy',
-  tools?: Tool[]
+  tools?: Tool[],
+  clientSystemPrompt?: string
 ): Promise<Agent> {
   const baseURL = await getAIGatewayBaseURL(env);
   const apiKey = await getAiGatewayToken(env);
@@ -421,7 +422,7 @@ export async function getConfiguredAgent(
   // Initialize and return the Agent framework object
   return new Agent({
     name: config.name,
-    instructions: config.systemPrompt,
+    instructions: clientSystemPrompt ? `${config.systemPrompt}\n\n## USER/CONTEXT PROMPT\n${clientSystemPrompt}` : config.systemPrompt,
     model: new OpenAIChatCompletionsModel(client, modelName),
     tools: [...(tools || []), systemNotificationTool],
   });

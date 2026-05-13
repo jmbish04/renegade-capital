@@ -24,8 +24,8 @@ const TABLES_TO_SCAN = [
   { name: "guests", minExpected: 1 },
   { name: "episodes", minExpected: 1 },
   { name: "research", minExpected: 1 },
-  { name: "trump_policy_page", minExpected: 1 },
-  { name: "trump_policy_tag", minExpected: 1 },
+  { name: "trump_policy_pages", minExpected: 1 },
+  { name: "trump_policy_tags", minExpected: 1 },
 ] as const;
 
 /**

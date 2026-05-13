@@ -577,7 +577,17 @@ policyRouter.openapi(createPageRoute, async (c) => {
 
     // 3. Handle Tags
     if (body.tags && Array.isArray(body.tags)) {
-      for (const tagData of body.tags) {
+      for (const rawTagData of body.tags) {
+        // Normalize field names: Python sends tagName/tagType, but we expect name/type
+        const tagData = {
+          name: rawTagData.name || rawTagData.tagName,
+          type: rawTagData.type || rawTagData.tagType,
+          parentType: rawTagData.parentType,
+          parentTag: rawTagData.parentTag,
+          rationale: rawTagData.rationale,
+        };
+
+        if (!tagData.name || !tagData.type) continue; // Skip invalid tags
         
         // Find or create parent tag type
         let parentTypeId = null;
@@ -674,12 +684,16 @@ policyRouter.openapi(createPageRoute, async (c) => {
       for (let i = 0; i < body.transcript.length; i++) {
         const line = body.transcript[i];
         
-        // Determine speaker source and guest ID
-        let speakerSource: "host" | "guest" = "guest";
+        let isHost = false;
+        let isGuest = true;
         let guestId: string | null = null;
+        let hostId: string | null = null;
         
         if (line.speaker.toLowerCase().includes("andrea") || line.speaker.toLowerCase().includes("host")) {
-          speakerSource = "host";
+          isHost = true;
+          isGuest = false;
+          const andrea = await db.select().from(schema.hosts).where(sql`name LIKE '%Andrea%'`).get();
+          if (andrea) hostId = andrea.id;
         } else {
           // Try to find matching guest ID from guestMatches
           const matchedGuest = body.guestMatches?.find((g: any) => 
@@ -693,7 +707,9 @@ policyRouter.openapi(createPageRoute, async (c) => {
         await db.insert(schema.episodeTranscriptLines).values({
           episodeId,
           lineNumber: i,
-          speakerSource,
+          isHost,
+          isGuest,
+          hostId,
           guestId,
           transcriptLine: line.text,
           cue: line.cue || "",
@@ -871,11 +887,16 @@ policyRouter.openapi(globalEpisodesRoute, async (c) => {
           for (let i = 0; i < ep.transcript.length; i++) {
             const line = ep.transcript[i];
             
-            let speakerSource: "host" | "guest" = "guest";
+            let isHost = false;
+            let isGuest = true;
             let guestId: string | null = null;
+            let hostId: string | null = null;
             
             if (line.speaker.toLowerCase().includes("andrea") || line.speaker.toLowerCase().includes("host")) {
-              speakerSource = "host";
+              isHost = true;
+              isGuest = false;
+              const andrea = await db.select().from(schema.hosts).where(sql`name LIKE '%Andrea%'`).get();
+              if (andrea) hostId = andrea.id;
             } else {
               // The AI should send guestId directly or we find it by name
               const matchedGuest = await db.select().from(schema.guests).where(eq(schema.guests.name, line.speaker)).get();
@@ -887,7 +908,9 @@ policyRouter.openapi(globalEpisodesRoute, async (c) => {
             await db.insert(schema.episodeTranscriptLines).values({
               episodeId,
               lineNumber: i,
-              speakerSource,
+              isHost,
+              isGuest,
+              hostId,
               guestId,
               transcriptLine: line.text,
               cue: line.cue || "",

@@ -34,33 +34,11 @@ export const siteConfig: SiteConfig = {
     github: "https://github.com/jmbish04/renegade-capital",
   },
   navItems: [
-    { href: "/", label: "Home" },
-    {
-      label: "Agents",
-      items: [
-        { href: "/chat/investor", label: "Investor Agent" },
-        { href: "/chat/podcast", label: "Podcast Agent" },
-        { href: "/chat/policy", label: "Policy Agent" },
-      ],
-    },
+    { href: "/agents", label: "Agents" },
     { href: "/episodes", label: "💡 Episode Ideas" },
     { href: "/guests", label: "Social Justice AI Heroes" },
     { href: "/research", label: "Research & Foundation" },
-    {
-      label: "🚨 Action Alert",
-      items: [
-        { href: "/policy/dashboard", label: "Policy Analytics" },
-        { href: "/policy/review", label: "Document Reader" },
-      ],
-    },
-    {
-      label: "Admin",
-      items: [
-        { href: "/health", label: "System Health" },
-        { href: "/scaler", label: "Scaler", external: true },
-        { href: "/swagger", label: "Swagger", external: true },
-        { href: "/openapi.json", label: "OpenAPI", external: true },
-      ],
-    },
+    { href: "/policy/overview", label: "🚨 Action Alert" },
+    { href: "/admin/overview", label: "Admin" },
   ],
 };
